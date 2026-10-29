@@ -34,7 +34,7 @@ Un `setTimeout` que calcula la propera 07:00 d'Europe/Madrid amb `Intl` i es rep
 ## 4. Persones: manual + actes
 
 - `person_teams` guarda només el que diu el coordinador (Excel o fitxa). Rol `cap` = "treu aquest equip encara que surti a les actes".
-- `appearances` guarda qui ha sortit a cada acta. Els equips "automàtics" d'una persona són els que apareixen en almenys N actes (Configuració, per defecte 1).
+- `appearances` guarda qui ha sortit a cada acta. Els equips "automàtics" d'una persona són els que apareixen en almenys N actes (Configuració, per defecte 2: veure §5).
 - Una persona de l'Excel es vincula amb les actes per `ID jok` o pel nom (tots els mots del nom curt dins del nom complet, si només hi ha una coincidència).
 - El cos tècnic de les actes no té id: s'enllaça pel nom amb el mateix criteri.
 
