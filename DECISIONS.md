@@ -53,3 +53,13 @@ Els germans adults que entrenen (p. ex. dos germans entrenadors) no necessiten l
 ## 8. Migracions mínimes
 
 `src/db.js` afegeix soles les columnes noves a una base de dades existent (`ADDED_COLUMNS`). Res d'eines de migració.
+
+## 9. Ubicacions: pavelló de l'acta + correcció a mà
+
+Les llistes de coordenades per nom d'equip tenien errors grossos (Sant Ignasi a Lleida → 211 min de trajecte).
+Ara el pavelló es llegeix de la capçalera de l'acta (`#partido_data_ppal`): el de cada partit jugat i, per als rivals
+que ens rebran, el del seu darrer partit a casa (màx. `VENUE_LIMIT` actes per dia; si l'acta no el diu es marca `''`
+per no repetir). Ordre per resoldre coordenades: taula `venues` (a mà) → `seed/pavilions.json` (nom exacte) →
+`seed/venues.json` (nom d'equip, aproximat). La pàgina `/ubicacions` les ensenya amb avisos (sense ubicació,
+aproximada, > `FAR_KM` km) i deixa enganxar coordenades o un enllaç de Google Maps, i posar minuts reals.
+Una correcció feta pel nom de l'equip passa al pavelló quan aquest es coneix.

@@ -23,3 +23,12 @@
 **Configuració**: regles (minuts), nom curt de cada equip (p. ex. «Prebe C»), parrilla, minuts reals de trajecte a les pistes que no quadrin, germans que no ho són, usuaris i correus d'avís.
 
 **Colors**: 🔵 casa · ⚪ fora · 🔴 bloqueig · 🟠 avís · 🟣 proposta.
+
+## Ubicacions
+
+Menú **Ubicacions**: tots els pavellons on es juguen els propers partits, amb els minuts des de casa que fa servir
+el càlcul de conflictes. Els que surten amb la vora taronja s'han de revisar (sense ubicació, aproximada o massa lluny).
+
+Per corregir-ne un: obre **Buscar-lo**, a Google Maps fes clic dret sobre el pavelló i clica les coordenades
+(es copien), enganxa-les a **Ubicació**, marca **Revisada** i **Desar**. Si saps el temps real de viatge,
+posa'l a **Minuts reals**: mana sobre el càlcul.

@@ -15,7 +15,7 @@
 <header class="top">
   <a class="brand" href="/">🏒 Calendari <span>CH Ripollet</span></a>
   <nav class="nav">
-    <% const items = [['/', 'Calendari'], ['/conflictes', 'Conflictes'], ['/pista', 'Pista'], ['/persones', 'Persones'], ['/simulador', 'Simulador'], ['/canvis', 'Canvis']];
+    <% const items = [['/', 'Calendari'], ['/conflictes', 'Conflictes'], ['/pista', 'Pista'], ['/persones', 'Persones'], ['/simulador', 'Simulador'], ['/ubicacions', 'Ubicacions'], ['/canvis', 'Canvis']];
        if (isCoord) items.push(['/config', 'Configuració']);
        items.forEach(([href, label]) => { const on = href === '/' ? path === '/' : path.startsWith(href); %>
       <a href="<%= href %>" class="<%= on ? 'on' : '' %>"><%= label %><% if (href === '/canvis' && unseen) { %> <b class="badge"><%= unseen %></b><% } %></a>

@@ -8,7 +8,8 @@ const E = require('./engine');
 const { getSetting } = require('./db');
 
 const CLUB_RE = new RegExp(process.env.CLUB_PATTERN || 'ripollet', 'i');
-const VENUES = require(path.join(__dirname, '..', 'seed', 'venues.json')).venues || {};
+const SEED_TEAMS = require(path.join(__dirname, '..', 'seed', 'venues.json')).venues || {};
+const SEED_PAVILIONS = require(path.join(__dirname, '..', 'seed', 'pavilions.json')).venues || {};
 const CAT_ORDER = ['Prebenjamí', 'Benjamí', 'Aleví', 'Infantil', 'Juvenil', 'Júnior', 'Femení', '3a Catalana', '2a Catalana', '1a Catalana', 'Nacional Catalana', 'Veterans', 'OK Liga', 'Altres'];
 
 /** Data d'avui a Madrid (YYYY-MM-DD). */
@@ -17,11 +18,31 @@ function todayKey(now = new Date()) {
   return new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Madrid', year: 'numeric', month: '2-digit', day: '2-digit' }).format(now);
 }
 
+/**
+ * Ubicacions per al motor: les desades a mà (taula venues) manen; després els pavellons coneguts
+ * (només per nom exacte) i, al final, la llista antiga per nom d'equip (aproximada).
+ */
+function venueSources(db) {
+  const out = {};
+  for (const [name, v] of Object.entries(SEED_TEAMS)) out[name] = { ...v, source: 'llista' };
+  for (const [name, v] of Object.entries(SEED_PAVILIONS)) out[name] = { ...v, exact: true, source: 'llista' };
+  for (const v of db.prepare('SELECT * FROM venues WHERE lat IS NOT NULL AND lng IS NOT NULL').all()) {
+    out[v.name] = { lat: v.lat, lng: v.lng, exact: true, source: 'manual', checked: Boolean(v.checked) };
+  }
+  return out;
+}
+
+function travelOverrides(db) {
+  const out = { ...getSetting(db, 'travel', {}) };
+  for (const v of db.prepare('SELECT name, minutes FROM venues WHERE minutes IS NOT NULL').all()) out[E.stripTeamSuffix(v.name)] = v.minutes;
+  return out;
+}
+
 function getConfig(db) {
   return {
     ...E.DEFAULT_CONFIG,
     ...getSetting(db, 'rules', {}),
-    travelOverrides: getSetting(db, 'travel', {}),
+    travelOverrides: travelOverrides(db),
     disabledFamilies: getSetting(db, 'disabled_families', []),
   };
 }
@@ -78,7 +99,7 @@ function loadModel(db) {
     .filter((m) => m.origin !== 'manual' || relevant.has(m.home_team_id) || relevant.has(m.away_team_id) || assigned.has(m.id));
   const blocks = db.prepare('SELECT * FROM pista_blocks').all();
   const grid = getSetting(db, 'grid', null);
-  return E.buildModel({ matches, teams, people, assignments, blocks, config, venues: VENUES, grid });
+  return E.buildModel({ matches, teams, people, assignments, blocks, config, venues: venueSources(db), grid });
 }
 
 /** Model + conflictes dels propers partits (amb propostes superposades si es demana). */
@@ -102,4 +123,4 @@ function findPersonByName(db, name, { onlyWithoutPlayerId = false } = {}) {
   return cands.length === 1 ? cands[0] : null;
 }
 
-module.exports = { CLUB_RE, VENUES, CAT_ORDER, todayKey, getConfig, allTeams, clubTeams, peopleWithTeams, loadModel, analyze, findPersonByName };
+module.exports = { CLUB_RE, venueSources, CAT_ORDER, todayKey, getConfig, allTeams, clubTeams, peopleWithTeams, loadModel, analyze, findPersonByName };

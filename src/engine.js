@@ -145,11 +145,15 @@ function makeVenueResolver(venues) {
   const entries = Object.entries(venues || {}).map(([name, v]) => {
     const lat = Number(v?.lat ?? v?.coordinates?.lat);
     const lng = Number(v?.lng ?? v?.coordinates?.lng);
-    return Number.isFinite(lat) && Number.isFinite(lng) ? { name, n: norm(name), base: stripTeamSuffix(name), lat, lng } : null;
+    return Number.isFinite(lat) && Number.isFinite(lng)
+      ? { name, n: norm(name), base: stripTeamSuffix(name), lat, lng, exact: Boolean(v.exact), source: v.source || 'llista', checked: Boolean(v.checked) }
+      : null;
   }).filter(Boolean);
-  const byNorm = new Map(entries.map((e) => [e.n, e]));
+  const byNorm = new Map();
+  for (const e of entries) if (!byNorm.has(e.n) || e.source === 'manual') byNorm.set(e.n, e);
+  const fuzzy = entries.filter((e) => !e.exact);           // els pavellons només per nom exacte
   const byBase = new Map();
-  for (const e of entries) if (!byBase.has(e.base)) byBase.set(e.base, e);
+  for (const e of fuzzy) if (!byBase.has(e.base)) byBase.set(e.base, e);
   const cache = new Map();
   const tokens = (s) => new Set(s.split(' ').filter((t) => t.length > 2 && !VENUE_STOPWORDS.has(t)));
 
@@ -159,12 +163,12 @@ function makeVenueResolver(venues) {
     if (cache.has(n)) return cache.get(n);
     const base = stripTeamSuffix(teamName);
     let hit = byNorm.get(n) || byBase.get(base) || null;
-    if (!hit && base) hit = entries.find((e) => e.base && (e.base.startsWith(`${base} `) || base.startsWith(`${e.base} `))) || null;
+    if (!hit && base) hit = fuzzy.find((e) => e.base && (e.base.startsWith(`${base} `) || base.startsWith(`${e.base} `))) || null;
     if (!hit && base) {
       const tq = tokens(base);
       let best = null;
       let bestScore = 0;
-      for (const e of entries) {
+      for (const e of fuzzy) {
         const te = tokens(e.base);
         if (!te.size || !tq.size) continue;
         let inter = 0;
@@ -174,7 +178,7 @@ function makeVenueResolver(venues) {
       }
       if (bestScore >= 0.6) hit = best;
     }
-    const res = hit ? { lat: hit.lat, lng: hit.lng, name: hit.name } : null;
+    const res = hit ? { lat: hit.lat, lng: hit.lng, name: hit.name, source: hit.source, checked: hit.checked, guessed: hit.n !== n } : null;
     cache.set(n, res);
     return res;
   };
@@ -339,7 +343,7 @@ function makeEvent(m, side, teamId, teamsById, derby) {
     homeName: m.home_name,
     awayName: m.away_name,
     opponent: side === 'home' ? m.away_name : m.home_name,
-    venue: m.home_name,
+    venue: m.venue || home?.venue || m.home_name,   // pavelló de l'acta, el que sol fer servir el local, o el seu nom
     date,
     time: normTime(m.time),
     dayKey: date,

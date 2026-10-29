@@ -38,6 +38,7 @@ CREATE TABLE IF NOT EXISTS teams (
   short_name     TEXT,
   own            INTEGER NOT NULL DEFAULT 0,
   rotation       INTEGER NOT NULL DEFAULT 0,
+  venue          TEXT,
   UNIQUE (competition_id, source_id)
 );
 
@@ -70,6 +71,7 @@ CREATE TABLE IF NOT EXISTS matches (
   away_team_id   INTEGER REFERENCES teams(id) ON DELETE SET NULL,
   home_name      TEXT NOT NULL,
   away_name      TEXT NOT NULL,
+  venue          TEXT,
   date           TEXT,                 -- YYYY-MM-DD
   time           TEXT,                 -- HH:MM
   played         INTEGER NOT NULL DEFAULT 0,
@@ -141,6 +143,15 @@ CREATE TABLE IF NOT EXISTS comments (
 );
 CREATE INDEX IF NOT EXISTS idx_comments_entity ON comments (entity_type, entity_id);
 
+CREATE TABLE IF NOT EXISTS venues (
+  name       TEXT PRIMARY KEY,          -- nom del pavelló (o de l'equip local si no el sabem)
+  lat        REAL,
+  lng        REAL,
+  minutes    INTEGER,                   -- minuts reals des de casa (si el coordinador els posa)
+  checked    INTEGER NOT NULL DEFAULT 0,
+  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
 CREATE TABLE IF NOT EXISTS settings (
   key   TEXT PRIMARY KEY,
   value TEXT NOT NULL
@@ -183,6 +194,8 @@ function openDb(file) {
 const ADDED_COLUMNS = [
   ['users', 'person_id', 'INTEGER REFERENCES people(id) ON DELETE SET NULL'],
   ['matches', 'idp', 'TEXT'],
+  ['matches', 'venue', 'TEXT'],         // pavelló (de l'acta)
+  ['teams', 'venue', 'TEXT'],           // pavelló on juga a casa (après de les actes)
 ];
 
 function migrate(db) {

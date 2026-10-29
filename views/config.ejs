@@ -43,16 +43,8 @@
 </section>
 
 <section class="card" id="trajectes">
-  <h2>Trajectes des de casa</h2>
-  <p class="muted small">Calculats amb les coordenades de <%= venuesKnown %> pistes conegudes. Si algun no quadra, escriu els minuts reals. «?» vol dir que no en sabem la ubicació (es compten <%= cfg.defaultTravelMinutes %> min).</p>
-  <form method="post" action="/config/trajectes" class="stack">
-    <input type="hidden" name="_csrf" value="<%= csrf %>">
-    <% venues.forEach((v) => { %>
-      <label class="rule"><span><%= tc(v.name) %><br><span class="muted small"><%= v.auto.estimated ? '? sense ubicació' : `auto: ${v.auto.minutes} min · ~${v.auto.km} km` %></span></span>
-        <input type="number" min="0" name="t_<%= v.base %>" value="<%= cfg.travelOverrides[v.base] ?? '' %>" placeholder="<%= v.auto.minutes %>"></label>
-    <% }) %>
-    <button class="btn primary">Desar</button>
-  </form>
+  <h2>Trajectes</h2>
+  <p class="muted small">Les ubicacions dels pavellons i els minuts des de casa es revisen i es corregeixen a <a href="/ubicacions">Ubicacions</a>.</p>
 </section>
 
 <section class="card" id="germans">

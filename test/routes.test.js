@@ -211,3 +211,35 @@ test('importar: àlies de nom de pila es vinculen si comparteixen equip', async 
   assert.ok(db.prepare("SELECT 1 FROM people WHERE name = 'Sergio Miras Valero'").get(), 'es queda el nom complet de les actes');
   assert.ok(db.prepare("SELECT 1 FROM people WHERE name = 'Sergio Garcia'").get());
 });
+
+test('ubicacions: el pavelló de l\'acta, corregir-ne la ubicació i els minuts', async () => {
+  const { db, app } = await setup();
+  const agent = await login(app, 'coord@club.cat');
+  assert.equal(db.prepare("SELECT venue FROM teams WHERE name = 'CH RIPOLLET B'").get().venue, 'PAVELLÓ RIPOLLET');
+  const page = await agent.get('/ubicacions');
+  assert.match(page.text, /Pavelló Ripollet/);
+  // Un rival que ens rep: li posem la ubicació enganxant un enllaç de Google Maps i els minuts reals.
+  const rival = db.prepare(`SELECT m.home_name FROM matches m JOIN teams t ON t.id = m.away_team_id
+    WHERE t.own = 1 AND m.played = 0 ORDER BY m.date LIMIT 1`).get().home_name;
+  const res = await agent.post('/ubicacions').type('form').send({
+    _csrf: agent.csrf, name: rival, location: 'https://www.google.com/maps/place/X/@41.40,2.13,17z/data=!3m1!4b1!4m6!3m5!1s0x0:0x0!8m2!3d41.4012!4d2.1345', minutes: '35', checked: '1',
+  });
+  assert.equal(res.status, 302);
+  const v = db.prepare('SELECT * FROM venues WHERE name = ?').get(rival);
+  assert.deepEqual([v.lat, v.lng, v.minutes, v.checked], [41.4012, 2.1345, 35, 1]);
+  const { getConfig } = require('../src/data');
+  assert.equal(Object.values(getConfig(db).travelOverrides).includes(35), true);
+  assert.match((await agent.get('/ubicacions')).text, /35 min<\/b> des de casa/);
+  // Coordenades que no s'entenen: no es desa res.
+  await agent.post('/ubicacions').type('form').send({ _csrf: agent.csrf, name: rival, location: 'carrer major' });
+  assert.equal(db.prepare('SELECT lat FROM venues WHERE name = ?').get(rival).lat, 41.4012);
+  // L'entrenador la veu però no la pot canviar.
+  const coach = await login(app, 'entrenador@club.cat');
+  assert.equal((await coach.post('/ubicacions').type('form').send({ _csrf: coach.csrf, name: rival, reset: '1' })).status, 403);
+});
+
+test('conflictes: cada partit diu contra qui és', async () => {
+  const { helpers } = { helpers: require('../src/helpers') };
+  assert.equal(helpers.evText({ time: '10:00', label: 'Benjamí B', isHome: false, opponent: 'CP VIC' }), '10:00 Benjamí B a Cp Vic (fora)');
+  assert.equal(helpers.evText({ time: '15:00', label: 'Prebenjamí A', isHome: true, opponent: 'CH MATARÓ' }), '15:00 Prebenjamí A vs Ch Mataró (casa)');
+});
