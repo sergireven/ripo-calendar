@@ -1,0 +1,105 @@
+<%- include('partials/head') %>
+<h1>Configuració</h1>
+<nav class="tabs"><a href="#regles">Regles</a><a href="#equips">Equips</a><a href="#parrilla">Parrilla</a><a href="#trajectes">Trajectes</a><a href="#germans">Germans</a><a href="#competicions">Competicions</a><a href="#usuaris">Usuaris</a></nav>
+
+<section class="card" id="regles">
+  <h2>Regles i avisos</h2>
+  <form method="post" action="/config/regles" class="stack">
+    <input type="hidden" name="_csrf" value="<%= csrf %>">
+    <% RULES.forEach(([k, label, hint]) => { %>
+      <label class="rule"><span><%= label %><% if (hint) { %><br><span class="muted small"><%= hint %></span><% } %></span><input type="number" min="0" name="<%= k %>" value="<%= cfg[k] %>"></label>
+    <% }) %>
+    <label>Correus que reben els avisos (a més dels coordinadors) <input name="alert_emails" value="<%= alertEmails %>" placeholder="separats per comes"></label>
+    <button class="btn primary">Desar</button>
+  </form>
+</section>
+
+<section class="card" id="equips">
+  <h2>Equips del club</h2>
+  <p class="muted small">Nom curt (el que fas servir tu, p. ex. «Prebe C») i rotació de porters.</p>
+  <form method="post" action="/config/equips" class="stack">
+    <input type="hidden" name="_csrf" value="<%= csrf %>">
+    <% teams.forEach((t) => { const coaches = model.people.filter((p) => p.teams.some((x) => x.teamId === t.id && x.role === 'entrena')); %>
+      <div class="team-row">
+        <input name="name_<%= t.id %>" value="<%= t.short_name || '' %>" placeholder="<%= t.label %>">
+        <label class="check"><input type="checkbox" name="rot_<%= t.id %>" <%= t.rotation ? 'checked' : '' %>> 🧤 Rotació</label>
+        <span class="muted small full"><%= t.competition_name %><%= coaches.length ? ' · 📋 ' + coaches.map((p) => shortName(p.name)).join(', ') : ' · sense entrenador' %></span>
+      </div>
+    <% }) %>
+    <button class="btn primary">Desar</button>
+  </form>
+</section>
+
+<section class="card" id="parrilla">
+  <h2>Parrilla del pavelló</h2>
+  <p class="muted small">Hores d'inici habituals, separades per comes. <%= grid ? 'Editada a mà.' : 'Ara és la deduïda dels partits programats.' %></p>
+  <form method="post" action="/config/parrilla" class="stack">
+    <input type="hidden" name="_csrf" value="<%= csrf %>">
+    <% ['dv', 'ds', 'dg'].forEach((wd) => { %>
+      <label class="rule"><span><%= DOW[wd] %></span><input name="<%= wd %>" value="<%= ((grid || derived)[wd] || []).join(', ') %>" placeholder="<%= (derived[wd] || []).join(', ') %>"></label>
+    <% }) %>
+    <div class="row-actions"><button class="btn primary">Desar</button><% if (grid) { %><button class="btn" name="reset" value="1">Tornar a la deduïda</button><% } %></div>
+  </form>
+</section>
+
+<section class="card" id="trajectes">
+  <h2>Trajectes des de casa</h2>
+  <p class="muted small">Calculats amb les coordenades de <%= venuesKnown %> pistes conegudes. Si algun no quadra, escriu els minuts reals. «?» vol dir que no en sabem la ubicació (es compten <%= cfg.defaultTravelMinutes %> min).</p>
+  <form method="post" action="/config/trajectes" class="stack">
+    <input type="hidden" name="_csrf" value="<%= csrf %>">
+    <% venues.forEach((v) => { %>
+      <label class="rule"><span><%= title(v.name) %><br><span class="muted small"><%= v.auto.estimated ? '? sense ubicació' : `auto: ${v.auto.minutes} min · ~${v.auto.km} km` %></span></span>
+        <input type="number" min="0" name="t_<%= v.base %>" value="<%= cfg.travelOverrides[v.base] ?? '' %>" placeholder="<%= v.auto.minutes %>"></label>
+    <% }) %>
+    <button class="btn primary">Desar</button>
+  </form>
+</section>
+
+<section class="card" id="germans">
+  <h2>Germans</h2>
+  <p class="muted small">Pels dos cognoms o pel camp Família de la fitxa. Només generen avís. Desmarca les coincidències que no siguin germans.</p>
+  <form method="post" action="/config/families" class="stack">
+    <input type="hidden" name="_csrf" value="<%= csrf %>">
+    <% families.forEach((f) => { %>
+      <input type="hidden" name="all" value="<%= f.key %>">
+      <label class="check"><input type="checkbox" name="on" value="<%= f.key %>" <%= (cfg.disabledFamilies || []).includes(f.key) ? '' : 'checked' %>> <b><%= title(f.label) %></b> <span class="muted small"><%= f.members.map((m) => shortName(m.name)).join(' · ') %></span></label>
+    <% }) %>
+    <button class="btn primary">Desar</button>
+  </form>
+</section>
+
+<section class="card" id="competicions">
+  <h2>Competicions</h2>
+  <p class="muted small">Es llegeixen totes cada dia (ho fa ràpid). Desmarca les que no t'interessin gens. Les que tenen equips del club surten primer.</p>
+  <form method="post" action="/config/competicions" class="stack">
+    <input type="hidden" name="_csrf" value="<%= csrf %>">
+    <div class="cols"><% competitions.forEach((c) => { %>
+      <label class="check small"><input type="checkbox" name="follow" value="<%= c.id %>" <%= c.follow ? 'checked' : '' %>> <%= c.own ? '⭐ ' : '' %><%= c.name %> <span class="muted">(<%= c.source.toUpperCase() %>)</span></label>
+    <% }) %></div>
+    <% if (!competitions.length) { %><p class="muted">Encara no s'ha sincronitzat.</p><% } %>
+    <button class="btn primary">Desar</button>
+  </form>
+</section>
+
+<section class="card" id="usuaris">
+  <h2>Usuaris</h2>
+  <% users.forEach((u) => { %>
+    <div class="team-row"><span><b><%= u.name %></b> · <%= u.email %> · <%= u.role %><%= u.person_name ? ' · agenda de ' + title(u.person_name) : '' %></span>
+      <% if (u.id !== user.id) { %><form method="post" action="/config/usuaris/<%= u.id %>/esborrar" class="inline" onsubmit="return confirm('Esborrar l\'usuari?')"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="link small">esborrar</button></form><% } %></div>
+  <% }) %>
+  <form method="post" action="/config/usuaris" class="stack">
+    <input type="hidden" name="_csrf" value="<%= csrf %>">
+    <h3>Afegir o canviar contrasenya</h3>
+    <div class="grid2"><label>Correu <input type="email" name="email" required></label><label>Nom <input name="name" required></label></div>
+    <div class="grid2">
+      <label>Rol <select name="role"><option value="entrenador">Entrenador (veu i comenta)</option><option value="coordinador">Coordinador (ho pot fer tot)</option></select></label>
+      <label>Contrasenya (mín. 8) <input name="password" minlength="8" required></label>
+    </div>
+    <label>Persona (per a «La meva agenda») <select name="person_id"><option value="">—</option><% people.forEach((p) => { %><option value="<%= p.id %>"><%= title(p.name) %></option><% }) %></select></label>
+    <button class="btn primary">Desar usuari</button>
+  </form>
+  <h3>Darrers correus</h3>
+  <% emails.forEach((e) => { %><p class="small"><%= when(e.created_at) %> · <%= e.status %> · <%= e.subject %><%= e.error ? ' · ' + e.error : '' %></p><% }) %>
+  <% if (!emails.length) { %><p class="muted small">Cap.</p><% } %>
+</section>
+<%- include('partials/foot') %>

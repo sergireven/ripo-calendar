@@ -1,0 +1,25 @@
+<%- include('partials/head') %>
+<p class="crumbs"><a href="/simulador">← Simulador</a></p>
+<section class="card">
+  <h1>Proposta: <%= target ? target.label : 'partit' %></h1>
+  <p class="big"><%= target ? `${dayLabel(target.dayKey, true)} ${target.time}` : '' %> → <b><%= dayLabel(p.new_date, true) %> <%= p.new_time %></b></p>
+  <p>Estat: <span class="pill <%= p.status %>"><%= { pendent: 'pendent de decidir', acceptada: 'acceptada · pendent que la federació la publiqui', rebutjada: 'rebutjada', oficial: 'oficial (ja surt a la federació)' }[p.status] %></span></p>
+  <p class="muted small"><%= ORIGINS[p.origin] || '' %><%= p.contact ? ' · ' + p.contact : '' %> · <%= p.author || '' %> · <%= when(p.created_at) %></p>
+  <% if (target) { %><p><a href="/partits/<%= p.match_id %>">Veure el partit</a></p><% } %>
+  <% if (isCoord) { %><form method="post" action="/propostes/<%= p.id %>/estat" class="row-actions">
+    <input type="hidden" name="_csrf" value="<%= csrf %>">
+    <% if (p.status === 'pendent') { %><button class="btn primary" name="action" value="acceptar">Acceptar</button><button class="btn" name="action" value="rebutjar">Rebutjar</button><% } %>
+    <% if (p.status === 'rebutjada' || p.status === 'acceptada') { %><button class="btn" name="action" value="reobrir">Tornar a pendent</button><% } %>
+    <button class="btn" name="action" value="esborrar" onclick="return confirm('Esborrar la proposta?')">Esborrar</button>
+  </form><% } %>
+</section>
+<% if (sim) { %>
+<section class="card">
+  <h2>Impacte ara</h2>
+  <% if (!sim.blocks) { %><p class="ok big">✓ Sense bloquejos<%= sim.warns ? ` (${sim.warns} avisos)` : '' %></p><% } else { %><p class="bad big">⛔ <%= sim.blocks %> bloquejos</p><% } %>
+  <% if (impact.blocks !== undefined && impact.blocks !== sim.blocks) { %><p class="muted small">Quan es va desar n'hi havia <%= impact.blocks %>: el calendari ha canviat.</p><% } %>
+  <% sim.after.forEach((c) => { %><%- include('partials/conflict', { c, showDate: true }) %><% }) %>
+</section>
+<% } %>
+<%- include('partials/comments', { entityType: 'proposal', entityId: p.id, comments, back: '/propostes/' + p.id }) %>
+<%- include('partials/foot') %>

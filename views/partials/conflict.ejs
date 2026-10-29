@@ -1,0 +1,10 @@
+<%# c = conflicte; opcionals: showDate, showSim %>
+<div class="conflict <%= c.severity %>">
+  <div><b><%= sevIcon(c.severity) %> <%= kindOf(c) %></b> · <% if (typeof showDate !== 'undefined' && showDate) { %><%= dayLabel(c.a.dayKey, true) %> · <% } %>
+    <a href="/partits/<%= c.a.matchId %>"><%= evText(c.a) %></a><% if (c.a.matchId !== c.b.matchId) { %> ↔ <a href="/partits/<%= c.b.matchId %>"><%= evText(c.b) %></a><% } %></div>
+  <div class="msg"><%= c.message %></div>
+  <% if (c.people.length) { %><div class="who">👤 <% c.people.forEach((p, i) => { %><%= i ? ', ' : '' %><a href="/persones/<%= p.id %>"><%= title(p.name) %></a><% if (p.roles.length) { %> <span class="muted">(<%= roleText(p.roles) %>)</span><% } %><% }) %></div><% } %>
+  <% if (typeof showSim !== 'undefined' && showSim) { %>
+    <div class="row-actions"><% [c.b, c.a].filter((e, i, arr) => e.own && arr.findIndex((x) => x.matchId === e.matchId) === i).forEach((e) => { %><a class="btn small" href="/simulador?partit=<%= e.matchId %>">Simular moure <%= e.label %></a><% }) %></div>
+  <% } %>
+</div>

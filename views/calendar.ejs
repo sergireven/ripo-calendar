@@ -1,0 +1,31 @@
+<%- include('partials/head', { calendar: true }) %>
+<div class="toolbar">
+  <form method="get" action="/" class="filters" id="cal-filters">
+    <select name="equip" data-autosubmit aria-label="Equip">
+      <option value="">Tots els equips</option>
+      <% teams.forEach((t) => { %><option value="<%= t.id %>" <%= String(t.id) === String(team) ? 'selected' : '' %>><%= t.label %></option><% }) %>
+    </select>
+    <select name="persona" data-autosubmit aria-label="Persona">
+      <option value="">Agenda d'una persona…</option>
+      <% people.forEach((p) => { %><option value="<%= p.id %>" <%= String(p.id) === String(person) ? 'selected' : '' %>><%= title(p.name) %></option><% }) %>
+    </select>
+    <% if (user.person_id) { %><a class="btn small" href="/?persona=<%= user.person_id %>">La meva agenda</a><% } %>
+    <% if (team || person) { %><a class="btn small" href="/">Treure filtre</a><% } %>
+  </form>
+  <% if (isCoord) { %><details class="manual"><summary class="btn small">+ Partit manual</summary>
+    <form method="post" action="/partits/nou" class="stack card">
+      <input type="hidden" name="_csrf" value="<%= csrf %>">
+      <p class="muted small">Amistosos, tornejos o partits que no surten a cap federació.</p>
+      <label>Rival o torneig <input name="title" required></label>
+      <div class="grid2"><label>Data <input type="date" name="date" required></label><label>Hora <input type="time" name="time" required></label></div>
+      <label>Equip del club <select name="team_id"><option value="">— Cap (només una persona) —</option><% teams.forEach((t) => { %><option value="<%= t.id %>"><%= t.label %></option><% }) %></select></label>
+      <label class="check"><input type="checkbox" name="home" value="1"> Es juga a casa</label>
+      <label>Pista (si és fora) <input name="place" placeholder="Nom de l'equip local o del pavelló"></label>
+      <label>Persona convocada <select name="person_id"><option value="">—</option><% people.forEach((p) => { %><option value="<%= p.id %>"><%= title(p.name) %></option><% }) %></select></label>
+      <button class="btn primary">Afegir</button>
+    </form></details><% } %>
+</div>
+<div class="legend"><span class="ev-casa">Casa</span><span class="ev-fora">Fora</span><span class="ev-block">Bloqueig</span><span class="ev-warn">Avís</span><span class="ev-proposta">Proposta</span></div>
+<div id="calendar" data-team="<%= team %>" data-person="<%= person %>"></div>
+<noscript><p>Cal JavaScript per veure el calendari. Mira <a href="/conflictes">Conflictes</a>.</p></noscript>
+<%- include('partials/foot') %>

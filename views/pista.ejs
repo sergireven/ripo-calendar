@@ -1,0 +1,54 @@
+<%- include('partials/head') %>
+<div class="weeknav">
+  <a class="btn" href="/pista?dia=<%= prev %><%= withProposals ? '&propostes=1' : '' %>">←</a>
+  <b>Cap de setmana <%= dayLabel(sat, true) %> – <%= dayLabel(sun, true) %></b>
+  <a class="btn" href="/pista?dia=<%= next %><%= withProposals ? '&propostes=1' : '' %>">→</a>
+</div>
+<p class="small"><a href="/pista?dia=<%= sat %><%= withProposals ? '' : '&propostes=1' %>"><%= withProposals ? 'Amagar' : 'Mostrar' %> propostes pendents</a></p>
+<% const labels = { lliure: 'Lliure', ocupada: '', solapament: 'Solapament', trepitjada: 'No aprofitable', bloquejada: 'Bloquejada' }; %>
+<% days.forEach((d) => { %>
+<section class="card">
+  <div class="head-row"><h2><%= dayLabel(d.dayKey) %></h2>
+    <span class="<%= d.free ? 'ok' : 'bad' %> small"><%= d.slots.length ? `${d.slots.length - d.free}/${d.slots.length} franges ocupades` : 'Sense franges habituals' %></span></div>
+  <% d.slots.forEach((s) => { %>
+    <div class="slot <%= s.status %>">
+      <span class="time"><%= s.time %></span>
+      <span class="slot-body">
+        <% if (labels[s.status]) { %><b class="slot-label"><%= labels[s.status] %></b><% } %>
+        <% s.events.forEach((ev) => { %><a href="/partits/<%= ev.matchId %>"><b><%= ev.label %></b><%= ev.time !== s.time ? ` (${ev.time})` : '' %> <span class="muted">vs <%= title(ev.opponent) %></span></a><% }) %>
+        <% if (s.status === 'trepitjada') { %><span class="small">La trepitja <%= s.overlapping.map((e) => `${e.label} (${e.time})`).join(', ') %></span><% } %>
+        <% if (s.status === 'bloquejada') { %><span class="small"><%= s.block.reason || '' %> <%= s.block.time_from %>–<%= s.block.time_to %></span><% } %>
+      </span>
+      <% if (isCoord && s.status === 'lliure') { %>
+        <form method="post" action="/pista/bloqueig" class="inline"><input type="hidden" name="_csrf" value="<%= csrf %>">
+          <input type="hidden" name="date" value="<%= d.dayKey %>"><input type="hidden" name="from" value="<%= s.time %>">
+          <input type="hidden" name="to" value="<%= minutesToClock(clockToMinutes(s.time) + slotMinutes) %>"><input type="hidden" name="reason" value="Bloquejada">
+          <button class="btn small">Bloquejar</button></form>
+      <% } %>
+      <% if (isCoord && s.status === 'bloquejada') { %><form method="post" action="/pista/bloqueig/<%= s.block.id %>/treure" class="inline"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn small">Desbloquejar</button></form><% } %>
+    </div>
+  <% }) %>
+  <% if (d.offGrid.length) { %><h3>Fora de franja habitual</h3>
+    <% d.offGrid.forEach((ev) => { %><a class="slot offgrid" href="/partits/<%= ev.matchId %>"><span class="time"><%= ev.time %></span><span class="slot-body"><b><%= ev.label %></b> <span class="muted">vs <%= title(ev.opponent) %></span></span></a><% }) %><% } %>
+  <% const loose = d.blocks.filter((b) => !d.slots.some((s) => s.block && s.block.id === b.id)); loose.forEach((b) => { %>
+    <div class="slot bloquejada"><span class="time"><%= b.time_from %></span><span class="slot-body">🚫 <%= b.time_from %>–<%= b.time_to %> <%= b.reason || '' %></span>
+      <% if (isCoord) { %><form method="post" action="/pista/bloqueig/<%= b.id %>/treure" class="inline"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn small">Treure</button></form><% } %></div>
+  <% }) %>
+  <% if (isCoord) { %><details><summary class="muted small">+ Bloquejar una altra franja</summary>
+    <form method="post" action="/pista/bloqueig" class="inline-form"><input type="hidden" name="_csrf" value="<%= csrf %>"><input type="hidden" name="date" value="<%= d.dayKey %>">
+      <input type="time" name="from" required> <input type="time" name="to" required> <input name="reason" placeholder="Motiu (escola, cessió…)"> <button class="btn">Bloquejar</button></form></details><% } %>
+</section>
+<% }) %>
+<section class="card">
+  <h2>Propers caps de setmana</h2>
+  <% weekends.forEach((w) => { %>
+    <a class="item" href="/pista?dia=<%= w.sat %>"><span class="item-main"><b><%= dayLabel(w.sat, true) %> – <%= dayLabel(addDays(w.sat, 1), true) %></b></span>
+      <span class="item-sub"><%= w.home %> partits a casa · <b class="<%= w.free ? 'ok' : 'bad' %>"><%= w.free %> franges lliures</b></span></a>
+  <% }) %>
+</section>
+<section class="card">
+  <div class="head-row"><h2>Parrilla habitual</h2><% if (isCoord) { %><a class="btn small" href="/config#parrilla">Editar</a><% } %></div>
+  <% ['ds', 'dg', 'dv'].filter((wd) => grid[wd]).forEach((wd) => { %><p><b><%= DOW[wd] %>:</b> <%= grid[wd].join(' · ') %></p><% }) %>
+  <p class="muted small">Hores que es repeteixen als partits a casa programats (sense trepitjar-se).</p>
+</section>
+<%- include('partials/foot') %>

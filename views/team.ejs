@@ -1,0 +1,22 @@
+<%- include('partials/head') %>
+<p class="crumbs"><a href="/?equip=<%= team.id %>">← Calendari de l'equip</a></p>
+<section class="card">
+  <h1><%= team.label %></h1>
+  <p class="muted"><%= title(team.name) %> · <%= team.competition_name %><%= team.own ? '' : ' · altre club' %></p>
+  <% const groups = [['entrena', '📋 Entrenadors'], ['ajuda', '🤝 Ajudants i delegats'], ['juga', '🏒 Jugadors']]; %>
+  <% groups.forEach(([role, label]) => { const ps = people.filter((p) => p.link.role === role); if (!ps.length) return; %>
+    <h2><%= label %> (<%= ps.length %>)</h2>
+    <p><% ps.forEach((p, i) => { %><%= i ? ' · ' : '' %><a href="/persones/<%= p.id %>"><%= title(p.name) %></a><%= p.porter ? ' 🧤' : '' %><% }) %></p>
+  <% }) %>
+  <% if (!people.length) { %><p class="muted">Encara no hi ha ningú: surten sols quan hi ha actes, o afegeix-los des de Persones.</p><% } %>
+</section>
+<section class="card">
+  <h2>Propers partits</h2>
+  <% if (!events.length) { %><p class="muted">Cap partit programat.</p><% } %>
+  <% events.forEach((ev) => { const s = sev.get(ev.key); %>
+    <a class="agenda <%= s || '' %>" href="/partits/<%= ev.matchId %>"><span class="when"><%= dayLabel(ev.dayKey, true) %> <b><%= ev.time || '--:--' %></b></span>
+      <span><%= ev.isHome ? '🏠' : '🚗' %> vs <%= title(ev.opponent) %><%= ev.proposalId ? ' · proposta' : '' %></span></a>
+  <% }) %>
+</section>
+<%- include('partials/comments', { entityType: 'team', entityId: team.id, comments, back: '/equips/' + team.id }) %>
+<%- include('partials/foot') %>

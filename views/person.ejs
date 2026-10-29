@@ -1,0 +1,73 @@
+<%- include('partials/head') %>
+<p class="crumbs"><a href="/persones">← Persones</a></p>
+<% const roleIcon = { juga: '🏒', entrena: '📋', ajuda: '🤝' }; %>
+<section class="card">
+  <div class="head-row"><h1><%= title(person.name) %><%= person.porter ? ' 🧤' : '' %></h1><a class="btn small" href="/?persona=<%= person.id %>">Veure al calendari</a></div>
+  <% if (person.player_id) { %><p class="muted small">Vinculada a les actes de la federació (id <%= person.player_id %>).</p><% } %>
+  <% if (person.notes) { %><p class="pre"><%= person.notes %></p><% } %>
+  <form method="post" action="/persones/<%= person.id %>" class="stack">
+    <input type="hidden" name="_csrf" value="<%= csrf %>">
+    <h2>Equips</h2>
+    <% if (!person.teams.length) { %><p class="muted">Cap equip.</p><% } %>
+    <% person.teams.forEach((t) => { const tm = teams.get(t.teamId); %>
+      <div class="team-row">
+        <span><%= roleIcon[t.role] %> <a href="/equips/<%= t.teamId %>"><%= tm ? tm.label : '?' %></a>
+          <span class="muted small"><%= t.auto ? `${t.apps} acta${t.apps === 1 ? '' : 'es'}` : 'fitxa' %><%= tm && !tm.own ? ' · altre club' : '' %></span></span>
+        <input type="hidden" name="team_id" value="<%= t.teamId %>">
+        <select name="role" <%= isCoord ? '' : 'disabled' %>>
+          <% [['juga', 'Juga'], ['entrena', 'Entrena'], ['ajuda', 'Ajudant/delegat'], ['treure', 'Treure']].forEach(([v, l]) => { %><option value="<%= v %>" <%= t.role === v ? 'selected' : '' %>><%= l %></option><% }) %>
+        </select>
+      </div>
+    <% }) %>
+    <% if (excluded.length) { %><p class="muted small">Tret a mà (encara que surti a les actes): <% excluded.forEach((t) => { %><%= t.label %> <% if (isCoord) { %><button class="link small" formaction="/persones/<%= person.id %>/equips/<%= t.id %>/recuperar">recuperar</button><% } %> <% }) %></p><% } %>
+    <% if (isCoord) { %>
+      <h2>Dades</h2>
+      <label>Nom <input name="name" value="<%= person.name %>" required></label>
+      <div class="grid2">
+        <label>Família (germans) <input name="family" value="<%= person.family || '' %>" placeholder="Per defecte, els dos cognoms"></label>
+        <label class="check"><input type="checkbox" name="porter" <%= person.porter ? 'checked' : '' %>> 🧤 Porter</label>
+      </div>
+      <label>Notes <textarea name="notes" rows="2"><%= person.notes || '' %></textarea></label>
+      <label class="check"><input type="checkbox" name="inactive" <%= person.active ? '' : 'checked' %>> No tenir-la en compte (ja no és al club…)</label>
+      <button class="btn primary">Desar</button>
+    <% } %>
+  </form>
+  <% if (isCoord) { %>
+    <h3>Afegir equip</h3>
+    <form method="post" action="/persones/<%= person.id %>/equips" class="inline-form">
+      <input type="hidden" name="_csrf" value="<%= csrf %>">
+      <select name="team_id" required><option value="">Equip del club…</option><% clubTeams.forEach((t) => { %><option value="<%= t.id %>"><%= t.label %></option><% }) %></select>
+      <select name="role"><option value="entrena">Entrena</option><option value="juga">Juga</option><option value="ajuda">Ajudant/delegat</option></select>
+      <button class="btn">Afegir</button>
+    </form>
+    <form method="get" action="/persones/<%= person.id %>" class="inline-form">
+      <input type="search" name="cerca" value="<%= cerca %>" placeholder="Equip d'un altre club (p. ex. sant cugat fem 19)">
+      <button class="btn">Cercar</button>
+    </form>
+    <% if (cerca && !search.length) { %><p class="muted small">Cap equip trobat (mínim 3 lletres).</p><% } %>
+    <% search.forEach((t) => { %>
+      <form method="post" action="/persones/<%= person.id %>/equips" class="inline-form result">
+        <input type="hidden" name="_csrf" value="<%= csrf %>"><input type="hidden" name="team_id" value="<%= t.id %>">
+        <span><b><%= title(t.name) %></b> <span class="muted small"><%= t.competition_name %></span></span>
+        <select name="role"><option value="juga">Juga</option><option value="entrena">Entrena</option><option value="ajuda">Ajudant</option></select>
+        <button class="btn small">Afegir</button>
+      </form>
+    <% }) %>
+  <% } %>
+</section>
+
+<section class="card">
+  <div class="head-row"><h2>Agenda</h2>
+    <span class="<%= conflicts.some((c) => c.severity === 'block') ? 'pill block' : conflicts.length ? 'pill warn' : 'ok' %>"><%= conflicts.length ? `${conflicts.filter((c) => c.severity === 'block').length} bloquejos · ${conflicts.filter((c) => c.severity === 'warn').length} avisos` : '✓ Sense conflictes' %></span></div>
+  <% if (!agenda.length) { %><p class="muted">Cap partit programat.</p><% } %>
+  <% let wk = null; agenda.forEach(({ ev, severity, role, conflicts: cs }) => { const sat = ev.dayKey ? weekendOf(ev.dayKey) : ''; if (sat !== wk) { wk = sat; %><h3><%= sat ? 'Cap de setmana ' + dayLabel(sat, true) : '' %></h3><% } %>
+    <a class="agenda <%= severity || '' %>" href="/partits/<%= ev.matchId %>">
+      <span class="when"><%= dayLabel(ev.dayKey, true) %> <b><%= ev.time || '--:--' %></b></span>
+      <span><%= roleIcon[role] || '' %> <b><%= ev.label %></b> <span class="muted"><%= ev.isHome ? 'a casa' : 'a ' + title(ev.venue) %></span><%= ev.proposalId ? ' · proposta' : '' %>
+        <% cs.forEach((c) => { const o = c.a.key === ev.key ? c.b : c.a; %><span class="cmsg"><%= sevIcon(c.severity) %> amb <%= o.label %> (<%= o.time %>): <%= c.message %></span><% }) %></span>
+    </a>
+  <% }) %>
+</section>
+<% if (isCoord) { %><form method="post" action="/persones/<%= person.id %>/esborrar" class="inline" onsubmit="return confirm('Segur?')"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="link">Esborrar o desactivar aquesta persona</button></form><% } %>
+<%- include('partials/comments', { entityType: 'person', entityId: person.id, comments, back: '/persones/' + person.id }) %>
+<%- include('partials/foot') %>

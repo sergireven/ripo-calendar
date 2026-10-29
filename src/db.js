@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS users (
   name          TEXT NOT NULL,
   role          TEXT NOT NULL CHECK (role IN ('coordinador', 'entrenador')),
   password_hash TEXT NOT NULL,
+  person_id     INTEGER REFERENCES people(id) ON DELETE SET NULL, -- per a "La meva agenda"
   created_at    TEXT NOT NULL DEFAULT (datetime('now'))
 );
 

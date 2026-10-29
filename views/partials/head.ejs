@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="ca">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title><%= title %> · Calendari CH Ripollet</title>
+  <link rel="stylesheet" href="/static/app.css?v=<%= assetVersion %>">
+  <% if (typeof calendar !== 'undefined' && calendar) { %>
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.15/locales/ca.global.min.js"></script>
+  <% } %>
+</head>
+<body>
+<% if (user) { %>
+<header class="top">
+  <a class="brand" href="/">🏒 Calendari <span>CH Ripollet</span></a>
+  <nav class="nav">
+    <% const items = [['/', 'Calendari'], ['/conflictes', 'Conflictes'], ['/pista', 'Pista'], ['/persones', 'Persones'], ['/simulador', 'Simulador'], ['/canvis', 'Canvis']];
+       if (isCoord) items.push(['/config', 'Configuració']);
+       items.forEach(([href, label]) => { const on = href === '/' ? path === '/' : path.startsWith(href); %>
+      <a href="<%= href %>" class="<%= on ? 'on' : '' %>"><%= label %><% if (href === '/canvis' && unseen) { %> <b class="badge"><%= unseen %></b><% } %></a>
+    <% }) %>
+    <form method="post" action="/sortir" class="inline"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="link">Sortir</button></form>
+  </nav>
+</header>
+<% } %>
+<main class="wrap">
+<% if (flash) { %><div class="flash <%= flash.type %>"><%= flash.text %></div><% } %>

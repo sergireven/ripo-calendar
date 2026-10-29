@@ -1,0 +1,61 @@
+<%- include('partials/head') %>
+<% const ev = mine.find((e) => e.own) || mine[0]; %>
+<p class="crumbs"><a href="/?<%= ev && ev.teamId ? 'equip=' + ev.teamId : '' %>">← Calendari</a></p>
+<section class="card">
+  <h1><%= ev ? ev.label : title(match.home_name) %></h1>
+  <p class="big"><%= title(match.home_name) %> – <%= title(match.away_name) %><% if (match.score) { %> · <b><%= match.score %></b><% } %></p>
+  <p><b><%= match.date ? dayLabel(match.date) : 'Sense data' %> · <%= match.time || 'sense hora' %></b> · <%= ev && ev.isHome ? '🏠 a casa' : '🚗 fora, a ' + title(match.home_name) %></p>
+  <p class="muted small"><%= match.competition_name || 'Partit manual' %><% if (match.jornada) { %> · Jornada <%= match.jornada %><% } %><% if (match.status === 'eliminat') { %> · <b>ja no surt a la federació</b><% } %></p>
+  <% if (staff.length) { %><p>📋 <% staff.forEach((p, i) => { %><%= i ? ', ' : '' %><a href="/persones/<%= p.id %>"><%= shortName(p.name) %></a><% }) %></p><% } %>
+  <div class="row-actions">
+    <% if (match.date && !match.played) { %><a class="btn primary" href="/simulador?partit=<%= match.id %>">Simular canvi d'hora</a><% } %>
+    <% if (ev && ev.teamId) { %><a class="btn" href="/equips/<%= ev.teamId %>">Equip</a><% } %>
+    <% if (isCoord && match.origin === 'manual') { %><form method="post" action="/partits/<%= match.id %>/esborrar" class="inline" onsubmit="return confirm('Esborrar aquest partit?')"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn">Esborrar</button></form><% } %>
+  </div>
+</section>
+
+<section class="card">
+  <h2>Conflictes</h2>
+  <% if (!conflicts.length) { %><p class="ok">✓ Sense conflictes.</p><% } %>
+  <% conflicts.forEach((c) => { %><%- include('partials/conflict', { c }) %><% }) %>
+</section>
+
+<% if (players.length || rotation) { %>
+<section class="card">
+  <h2>Convocatòria</h2>
+  <% if (rotation) { %>
+    <% const porter = assignments.find((a) => a.type === 'porter'); %>
+    <form method="post" action="/partits/<%= match.id %>/assignacio" class="stack">
+      <input type="hidden" name="_csrf" value="<%= csrf %>"><input type="hidden" name="type" value="porter">
+      <label>🧤 Porter d'aquest partit
+        <select name="person_id" data-autosubmit <%= isCoord ? '' : 'disabled' %>>
+          <option value="">— Sense assignar —</option>
+          <% porterPool.forEach((p) => { %><option value="<%= p.id %>" <%= porter && porter.person_id === p.id ? 'selected' : '' %>><%= title(p.name) %> (<%= rotationCount(p.id) %>)</option><% }) %>
+        </select></label>
+      <p class="muted small">Entre parèntesis, partits de porter que ja té assignats.</p>
+    </form>
+  <% } %>
+  <h3>Reforços</h3>
+  <% const ref = assignments.filter((a) => a.type === 'reforç'); %>
+  <% if (!ref.length) { %><p class="muted">Cap.</p><% } %>
+  <ul class="plain"><% ref.forEach((a) => { %><li><a href="/persones/<%= a.person_id %>"><%= title(a.name) %></a>
+    <% if (isCoord) { %><form method="post" action="/partits/<%= match.id %>/assignacio/<%= a.id %>/treure" class="inline"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="link">treure</button></form><% } %></li><% }) %></ul>
+  <% if (isCoord) { %><form method="post" action="/partits/<%= match.id %>/assignacio" class="inline-form">
+    <input type="hidden" name="_csrf" value="<%= csrf %>"><input type="hidden" name="type" value="reforç">
+    <select name="person_id" required><option value="">Afegir reforç…</option><% allPeople.filter((p) => !players.includes(p)).forEach((p) => { %><option value="<%= p.id %>"><%= title(p.name) %></option><% }) %></select>
+    <button class="btn">Afegir</button></form><% } %>
+  <details><summary class="muted">Jugadors de l'equip (<%= players.length %>)</summary><p class="small"><% players.forEach((p, i) => { %><%= i ? ' · ' : '' %><a href="/persones/<%= p.id %>"><%= title(p.name) %></a><%= p.porter ? ' 🧤' : '' %><% }) %></p></details>
+</section>
+<% } %>
+
+<% if (proposals.length || changes.length) { %>
+<section class="card">
+  <h2>Historial</h2>
+  <ul class="plain">
+    <% proposals.forEach((p) => { %><li>💡 <a href="/propostes/<%= p.id %>">Proposta</a>: <%= dayLabel(p.new_date, true) %> <%= p.new_time %> · <b><%= p.status %></b> <span class="muted small"><%= when(p.created_at) %></span></li><% }) %>
+    <% changes.forEach((c) => { %><li>🔁 Federació: <%= c.type === 'canvi' ? c.before + ' → ' + c.after : c.type === 'nou' ? 'nou ' + c.after : 'eliminat (era ' + c.before + ')' %> <span class="muted small"><%= when(c.detected_at) %></span></li><% }) %>
+  </ul>
+</section>
+<% } %>
+<%- include('partials/comments', { entityType: 'match', entityId: match.id, comments, back: '/partits/' + match.id }) %>
+<%- include('partials/foot') %>

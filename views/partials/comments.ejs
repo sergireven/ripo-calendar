@@ -1,0 +1,20 @@
+<%# entityType, entityId, comments, back %>
+<section class="card">
+  <h2>Comentaris</h2>
+  <% if (!comments.length) { %><p class="muted">Encara no n'hi ha.</p><% } %>
+  <% comments.forEach((c) => { %>
+    <div class="comment">
+      <div class="muted small"><b><%= c.author || 'Algú' %></b> · <%= when(c.created_at) %>
+        <% if (user && (c.user_id === user.id || isCoord)) { %>
+          <form method="post" action="/comentaris/<%= c.id %>/esborrar" class="inline"><input type="hidden" name="_csrf" value="<%= csrf %>"><input type="hidden" name="back" value="<%= back %>"><button class="link small">esborrar</button></form>
+        <% } %></div>
+      <div class="pre"><%= c.body %></div>
+    </div>
+  <% }) %>
+  <form method="post" action="/comentaris" class="stack">
+    <input type="hidden" name="_csrf" value="<%= csrf %>">
+    <input type="hidden" name="entity_type" value="<%= entityType %>"><input type="hidden" name="entity_id" value="<%= entityId %>"><input type="hidden" name="back" value="<%= back %>">
+    <textarea name="body" rows="2" placeholder="Escriu un comentari…" required></textarea>
+    <button class="btn">Afegir comentari</button>
+  </form>
+</section>

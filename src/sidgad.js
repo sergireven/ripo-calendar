@@ -29,9 +29,13 @@ function parseCompetitionList(html) {
   return out;
 }
 
-/** Temporada activa = la temp_ més alta de la llista. */
+/** Temporada activa = la temp_ més alta amb unes quantes competicions (hi ha calaixos especials com temp_1001). */
 function activeSeason(list) {
-  return list.reduce((max, c) => Math.max(max, c.temp), 0);
+  const count = new Map();
+  for (const c of list) count.set(c.temp, (count.get(c.temp) || 0) + 1);
+  const real = [...count.keys()].filter((t) => t < 1000);
+  const busy = real.filter((t) => count.get(t) >= 3);
+  return Math.max(0, ...(busy.length ? busy : real));
 }
 
 /**

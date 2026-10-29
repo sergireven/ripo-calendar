@@ -1,0 +1,29 @@
+<%- include('partials/head') %>
+<p class="crumbs"><a href="/persones">← Persones</a></p>
+<section class="card">
+  <h1>Importar persones des d'Excel</h1>
+  <% if (!items) { %>
+    <p>Columnes: <b>Nom</b> · Juga a · Entrena · Ajudant/delegat a · Altres equips (Equip | Competició) · Família · Porter · Notes · ID jok.</p>
+    <p class="muted small">Pots partir de l'Excel que descarregues a Persones → 📤 Excel: hi ha una pestanya d'ajuda amb els noms dels equips.</p>
+    <form method="post" action="/persones/importar?_csrf=<%= csrf %>" enctype="multipart/form-data" class="stack">
+      <input type="file" name="file" accept=".xlsx,.xls,.csv" required>
+      <button class="btn primary">Previsualitzar</button>
+    </form>
+  <% } else { const unknown = items.filter((i) => i.unknown.length); %>
+    <p><b><%= items.filter((i) => i.existing).length %></b> ja existeixen (s'actualitzaran) · <b><%= items.filter((i) => !i.existing).length %></b> noves<%- unknown.length ? ` · <b class="bad">${unknown.length} amb equips no reconeguts</b>` : '' %></p>
+    <div class="list">
+    <% items.forEach((i) => { %>
+      <div class="item <%= i.unknown.length ? 'bad-border' : '' %>">
+        <span class="item-main"><b><%= i.name %></b> <span class="pill <%= i.existing ? '' : 'new' %>"><%= i.existing ? 'actualitza ' + title(i.existing.name) : 'nova' %></span><%= i.porter ? ' 🧤' : '' %></span>
+        <span class="item-sub"><%= i.teams.length ? i.teams.map((t) => ({ juga: '🏒', entrena: '📋', ajuda: '🤝' }[t.role]) + ' ' + t.label).join(' · ') : 'Sense equips' %><% if (i.unknown.length) { %> · <span class="bad">No reconegut: <%= i.unknown.join(', ') %></span><% } %></span>
+      </div>
+    <% }) %>
+    </div>
+    <% if (unknown.length) { %><p class="muted small">Els equips no reconeguts no s'importen (la resta sí). Per als del club fes servir el nom de Configuració → Equips; per a altres clubs, <i>Equip | Competició</i>.</p><% } %>
+    <form method="post" action="/persones/importar/aplicar" class="row-actions">
+      <input type="hidden" name="_csrf" value="<%= csrf %>">
+      <button class="btn primary">Importar</button><button class="btn" name="cancel" value="1">Cancel·lar</button>
+    </form>
+  <% } %>
+</section>
+<%- include('partials/foot') %>
