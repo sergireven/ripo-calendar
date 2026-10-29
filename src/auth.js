@@ -52,7 +52,8 @@ function checkPassword(db, email, password) {
 function requireLogin(req, res, next) {
   if (req.user) return next();
   if (req.path.startsWith('/api/')) return res.status(401).json({ error: 'Cal entrar' });
-  req.session.returnTo = req.originalUrl;
+  // Només pàgines: el navegador també demana /favicon.ico i similars, i no hi volem tornar després d'entrar.
+  if (req.method === 'GET' && !/\.[a-z0-9]+$/i.test(req.path)) req.session.returnTo = req.originalUrl;
   return res.redirect('/entrar');
 }
 

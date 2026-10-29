@@ -59,6 +59,16 @@ test('després d\'entrar no redirigeix fora del lloc', async () => {
   assert.ok(!String(res.headers.location).startsWith('//'));
 });
 
+test('el favicon no es converteix en la pàgina de després d\'entrar', async () => {
+  const { app } = await setup();
+  const agent = request.agent(app);
+  assert.equal((await agent.get('/favicon.ico')).status, 200);
+  await agent.get('/no-existeix.png');
+  const csrf = (await agent.get('/entrar')).text.match(/name="_csrf" value="([^"]+)"/)[1];
+  const res = await agent.post('/entrar').type('form').send({ _csrf: csrf, email: 'coord@club.cat', password: 'secret123' });
+  assert.equal(res.headers.location, '/');
+});
+
 test('contrasenya incorrecta no entra', async () => {
   const { app } = await setup();
   const agent = request.agent(app);

@@ -31,6 +31,7 @@ function createApp(db, options = {}) {
     next();
   });
   app.get('/healthz', (req, res) => res.json({ ok: true }));
+  app.get('/favicon.ico', (req, res) => res.type('image/svg+xml').send('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">🏒</text></svg>'));
   app.use('/static', express.static(path.join(__dirname, '..', 'public'), { maxAge: '1h' }));
   app.use(express.urlencoded({ extended: false, limit: '200kb' }));
 
