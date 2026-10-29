@@ -50,6 +50,15 @@ test('sense sessió: healthcheck obert i la resta redirigeix a entrar', async ()
   assert.equal((await request(app).get('/api/events')).status, 401);
 });
 
+test('després d\'entrar no redirigeix fora del lloc', async () => {
+  const { app } = await setup();
+  const agent = request.agent(app);
+  await agent.get('//exemple.com/x');
+  const csrf = (await agent.get('/entrar')).text.match(/name="_csrf" value="([^"]+)"/)[1];
+  const res = await agent.post('/entrar').type('form').send({ _csrf: csrf, email: 'coord@club.cat', password: 'secret123' });
+  assert.ok(!String(res.headers.location).startsWith('//'));
+});
+
 test('contrasenya incorrecta no entra', async () => {
   const { app } = await setup();
   const agent = request.agent(app);
@@ -81,6 +90,7 @@ test('l\'entrenador veu però no pot canviar res', async () => {
   const agent = await login(app, 'entrenador@club.cat');
   assert.equal((await agent.get('/')).status, 200);
   assert.equal((await agent.get('/config')).status, 403);
+  assert.equal((await agent.get('/persones/exportar.xlsx')).status, 403, 'l\'Excel té dades de menors: només coordinadors');
   const res = await agent.post('/pista/bloqueig').type('form').send({ _csrf: agent.csrf, date: '2026-11-01', from: '10:00', to: '11:00' });
   assert.equal(res.status, 403);
   assert.equal(db.prepare('SELECT COUNT(*) n FROM pista_blocks').get().n, 0);

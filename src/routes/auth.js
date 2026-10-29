@@ -11,7 +11,7 @@ module.exports = (app, { db }) => {
     const back = req.session.returnTo;
     req.session.regenerate(() => {
       req.session.userId = user.id;
-      res.redirect(back && back.startsWith('/') ? back : '/');
+      res.redirect(back && back.startsWith('/') && !back.startsWith('//') ? back : '/');
     });
   });
 

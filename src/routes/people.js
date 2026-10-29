@@ -44,7 +44,7 @@ module.exports = (app, { db }) => {
     res.redirect(`/persones/${id}`);
   });
 
-  app.get('/persones/exportar.xlsx', (req, res) => {
+  app.get('/persones/exportar.xlsx', requireCoordinator, (req, res) => {
     res.set('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     res.set('Content-Disposition', 'attachment; filename="persones.xlsx"');
     res.send(exportWorkbook(db));

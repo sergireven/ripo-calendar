@@ -2,8 +2,7 @@
 <div class="head-row">
   <h1>Persones <span class="muted">(<%= total %>)</span></h1>
   <div class="row-actions">
-    <a class="btn small" href="/persones/exportar.xlsx">📤 Excel</a>
-    <% if (isCoord) { %><a class="btn small" href="/persones/importar">📥 Importar</a><% } %>
+    <% if (isCoord) { %><a class="btn small" href="/persones/exportar.xlsx">📤 Excel</a><a class="btn small" href="/persones/importar">📥 Importar</a><% } %>
   </div>
 </div>
 <form method="get" action="/persones" class="filters">
