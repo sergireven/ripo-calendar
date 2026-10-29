@@ -75,6 +75,7 @@ function createApp(db, options = {}) {
   require('./routes/calendar')(app, ctx);
   require('./routes/people')(app, ctx);
   require('./routes/pista')(app, ctx);
+  require('./routes/venues')(app, ctx);
   require('./routes/admin')(app, ctx);
 
   app.use((req, res) => res.status(404).render('error', { title: 'No trobat', message: 'Aquesta pàgina no existeix.' }));

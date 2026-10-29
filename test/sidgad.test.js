@@ -58,3 +58,18 @@ test('client: envia Referer i reintenta un cop', async () => {
   assert.equal(calls[1].opts.headers.Referer, 'https://www.hoqueipatins.fecapa.cat/');
   assert.match(calls[1].opts.body, /idc=4948/);
 });
+
+test('acta: pavelló de la capçalera', () => {
+  assert.equal(S.parseActa(fixture('fecapa-acta-154502.html')).venue, 'PAVELLÓ RIPOLLET');
+});
+
+test('ubicació enganxada: coordenades, enllaços de Google Maps i text que no ho és', () => {
+  const { parseLocation } = require('../src/geo');
+  assert.deepEqual(parseLocation('41.5312, 2.1925'), { lat: 41.5312, lng: 2.1925 });
+  assert.deepEqual(parseLocation('41.5312 2.1925'), { lat: 41.5312, lng: 2.1925 });
+  assert.deepEqual(parseLocation('https://www.google.com/maps/place/Pavell%C3%B3/@41.53,2.19,17z/data=!3d41.5312!4d2.1925'), { lat: 41.5312, lng: 2.1925 });
+  assert.deepEqual(parseLocation('https://maps.google.com/?q=41.40,2.13'), { lat: 41.4, lng: 2.13 });
+  assert.deepEqual(parseLocation('https://www.google.com/maps/@41.40,2.13,15z'), { lat: 41.4, lng: 2.13 });
+  assert.equal(parseLocation('carrer major 3'), null);
+  assert.equal(parseLocation('0,0'), null);
+});

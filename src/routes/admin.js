@@ -2,7 +2,7 @@
 
 const E = require('../engine');
 const { getSetting, setSetting } = require('../db');
-const { loadModel, clubTeams, getConfig, VENUES } = require('../data');
+const { loadModel, clubTeams, getConfig } = require('../data');
 const { requireCoordinator, upsertUser } = require('../auth');
 
 const RULES = [
@@ -40,22 +40,15 @@ module.exports = (app, { db, sync }) => {
     const cfg = getConfig(db);
     const model = loadModel(db);
     const derived = E.deriveGrid(model.events, cfg.gridMinCount, cfg.slotMinutes);
-    const venues = new Map();
-    for (const ev of model.events) {
-      if (ev.isHome || !ev.venue || ev.manual) continue;
-      const base = E.stripTeamSuffix(ev.venue);
-      if (!venues.has(base)) venues.set(base, { base, name: ev.venue, auto: E.travelBetween({ isHome: true, venue: '' }, ev, model.resolve, { ...model.cfg, travelOverrides: {} }) });
-    }
     const competitions = db.prepare(`SELECT c.*, (SELECT COUNT(*) FROM teams t WHERE t.competition_id = c.id AND t.own = 1) AS own
       FROM competitions c ORDER BY own DESC, c.source, c.name`).all();
     const people = db.prepare('SELECT id, name FROM people WHERE active = 1 ORDER BY name').all();
     const allFamilies = E.buildModel({ people: model.people.map((p) => ({ ...p, teams: p.teams })), config: { ...cfg, disabledFamilies: [] } }).families;
     res.render('config', {
       title: 'Configuració', cfg, RULES, grid: getSetting(db, 'grid', null), derived, model,
-      venues: [...venues.values()].sort((a, b) => Number(b.auto.estimated) - Number(a.auto.estimated) || a.name.localeCompare(b.name)),
       teams: clubTeams(db), competitions, alertEmails: getSetting(db, 'alert_emails', ''), people, families: allFamilies,
       users: db.prepare('SELECT u.*, p.name AS person_name FROM users u LEFT JOIN people p ON p.id = u.person_id ORDER BY u.role, u.name').all(),
-      emails: db.prepare('SELECT * FROM email_log ORDER BY id DESC LIMIT 10').all(), venuesKnown: Object.keys(VENUES).length,
+      emails: db.prepare('SELECT * FROM email_log ORDER BY id DESC LIMIT 10').all(),
     });
   });
 
@@ -83,18 +76,6 @@ module.exports = (app, { db, sync }) => {
     }
     req.flash('ok', 'Parrilla desada.');
     res.redirect('/config#parrilla');
-  });
-
-  app.post('/config/trajectes', requireCoordinator, (req, res) => {
-    const travel = {};
-    for (const [k, v] of Object.entries(req.body)) {
-      if (!k.startsWith('t_') || v === '') continue;
-      const n = Number(v);
-      if (Number.isFinite(n) && n >= 0) travel[k.slice(2)] = n;
-    }
-    setSetting(db, 'travel', travel);
-    req.flash('ok', 'Trajectes desats.');
-    res.redirect('/config#trajectes');
   });
 
   app.post('/config/equips', requireCoordinator, (req, res) => {

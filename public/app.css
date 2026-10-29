@@ -144,3 +144,11 @@ a.item:hover { background: var(--gray-bg); text-decoration: none; }
 .fc-timegrid-event .fc-event-main { padding: 2px 3px; font-size: .78rem; line-height: 1.2; }
 .comment { border-bottom: 1px solid var(--line); padding: .5rem 0; }
 .save { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--line); }
+
+/* Ubicacions */
+.venue.problem { border-left: 4px solid var(--amber); }
+.venue-form { display: flex; flex-wrap: wrap; gap: .6rem; align-items: flex-end; }
+.venue-form label { display: flex; flex-direction: column; font-size: .85rem; gap: .2rem; }
+.venue-form label:first-of-type { flex: 1 1 16rem; }
+.venue-form input[type=number] { width: 6rem; }
+.venue-form .check { flex-direction: row; align-items: center; }

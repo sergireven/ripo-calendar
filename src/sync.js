@@ -11,6 +11,7 @@ const { activeSeason } = require('./sidgad');
 
 const RFEP_FILTER = new RegExp(process.env.RFEP_FILTER || 'OK LIGA', 'i');
 const ACTA_LIMIT = Number(process.env.ACTA_LIMIT || 60);
+const VENUE_LIMIT = Number(process.env.VENUE_LIMIT || 80);
 let running = null;
 
 function seasonLabel(now = new Date()) {
@@ -41,6 +42,9 @@ function createSync(db, { client, mailer, appUrl = process.env.APP_URL || '' } =
     followed: db.prepare('SELECT master_id, MAX(follow) AS follow FROM competitions WHERE source = ? GROUP BY master_id'),
   };
   const isOwn = (teamId) => Boolean(teamId && q.isOwnTeam.get(teamId)?.own);
+  // Si el coordinador ja havia corregit la ubicació pel nom de l'equip, passa al pavelló quan el coneixem.
+  const carryVenue = db.prepare(`INSERT OR IGNORE INTO venues (name, lat, lng, minutes, checked)
+    SELECT ?, v.lat, v.lng, v.minutes, v.checked FROM venues v JOIN teams t ON t.name = v.name WHERE t.id = ?`);
 
   function upsertTeam(competitionId, sourceId, name) {
     if (!name) return null;
@@ -117,6 +121,8 @@ function createSync(db, { client, mailer, appUrl = process.env.APP_URL || '' } =
     const setPlayerId = db.prepare('UPDATE people SET player_id = ? WHERE id = ?');
     const appear = db.prepare('INSERT OR IGNORE INTO appearances (match_id, person_id, team_id, role) VALUES (?, ?, ?, ?)');
     const done = db.prepare('UPDATE matches SET acta_loaded = ? WHERE id = ?');
+    const venue = db.prepare('UPDATE matches SET venue = ? WHERE id = ?');
+    const teamVenue = db.prepare("UPDATE teams SET venue = ? WHERE id = ? AND (venue IS NULL OR venue = '')");
     let loaded = 0;
     for (const m of pending) {
       const idp = m.idp;
@@ -125,6 +131,10 @@ function createSync(db, { client, mailer, appUrl = process.env.APP_URL || '' } =
       const empty = !acta.home.players.length && !acta.away.players.length;
       const old = (Date.now() - Date.parse(m.date)) > 14 * 86400000;
       db.transaction(() => {
+        if (acta.venue) {
+          venue.run(acta.venue, m.id);
+          if (m.home_team_id) { teamVenue.run(acta.venue, m.home_team_id); carryVenue.run(acta.venue, m.home_team_id); }
+        }
         for (const [side, teamId] of [['home', m.home_team_id], ['away', m.away_team_id]]) {
           if (!isOwn(teamId)) continue;
           for (const p of acta[side].players) {
@@ -145,6 +155,31 @@ function createSync(db, { client, mailer, appUrl = process.env.APP_URL || '' } =
       if (!empty) loaded++;
     }
     return loaded;
+  }
+
+  /**
+   * Pavelló de cada equip que ens rebrà (o que juga a casa nostra): es llegeix de l'acta del seu
+   * darrer partit a casa ja jugat. Si l'acta no el diu, es marca '' per no tornar-hi cada dia.
+   */
+  async function learnVenues(errors) {
+    const hosts = db.prepare(`SELECT DISTINCT m.home_team_id AS id FROM matches m
+      WHERE m.status = 'actiu' AND m.played = 0 AND m.home_team_id IS NOT NULL
+        AND (m.home_team_id IN (SELECT id FROM teams WHERE own = 1) OR m.away_team_id IN (SELECT id FROM teams WHERE own = 1))
+        AND m.home_team_id IN (SELECT id FROM teams WHERE venue IS NULL)`).all();
+    const lastHome = db.prepare(`SELECT m.*, c.source, c.source_id AS group_id FROM matches m JOIN competitions c ON c.id = m.competition_id
+      WHERE m.home_team_id = ? AND m.played = 1 AND m.idp IS NOT NULL AND m.status = 'actiu' ORDER BY m.date DESC LIMIT 1`);
+    const setTeam = db.prepare('UPDATE teams SET venue = ? WHERE id = ?');
+    const setMatch = db.prepare('UPDATE matches SET venue = ? WHERE id = ?');
+    let learned = 0;
+    for (const { id } of hosts.slice(0, VENUE_LIMIT)) {
+      const m = lastHome.get(id);
+      if (!m) continue;                                     // encara no ha jugat a casa: demà ho tornarem a provar
+      let acta;
+      try { acta = await client.acta(m.source, m.idp, m.group_id); } catch (err) { errors.push(`Pavelló (acta ${m.idp}): ${err.message}`); continue; }
+      setTeam.run(acta.venue || '', id);
+      if (acta.venue) { setMatch.run(acta.venue, m.id); carryVenue.run(acta.venue, id); learned++; }
+    }
+    return learned;
   }
 
   function newBlockConflicts() {
@@ -168,7 +203,8 @@ function createSync(db, { client, mailer, appUrl = process.env.APP_URL || '' } =
 
   function describeConflict(c) {
     const who = c.people.length ? ` (${c.people.map((p) => E.titleCase(p.name)).join(', ')})` : '';
-    const pair = c.a.matchId === c.b.matchId ? `${c.a.time} ${c.a.label}` : `${c.a.time} ${c.a.label} ↔ ${c.b.time} ${c.b.label}`;
+    const ev = (e) => `${e.time} ${e.label} ${e.isHome ? 'vs' : 'a'} ${E.titleCase(e.opponent || '')}`.trim();
+    const pair = c.a.matchId === c.b.matchId ? ev(c.a) : `${ev(c.a)} ↔ ${ev(c.b)}`;
     return `• ${c.a.dayKey} · ${pair}: ${c.message}${who}\n  ${appUrl}/partits/${c.a.matchId}`;
   }
 
@@ -217,6 +253,7 @@ function createSync(db, { client, mailer, appUrl = process.env.APP_URL || '' } =
         }
         markOfficialProposals();
         await loadActas(errors);
+        await learnVenues(errors);
         const blocks = newBlockConflicts();
         await notify({ changes: changeIds, blocks, errors });
         db.prepare("UPDATE sync_runs SET finished_at = datetime('now'), ok = ?, matches = ?, changes = ?, new_blocks = ?, errors = ? WHERE id = ?")

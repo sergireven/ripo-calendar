@@ -118,7 +118,10 @@ function parseActa(html) {
     }
     sides.push({ players, staff });
   }
-  return { home: sides[0] || { players: [], staff: [] }, away: sides[1] || { players: [], staff: [] } };
+  // Pavelló: a la capçalera de l'acta, la cel·la centrada de la primera taula.
+  const head = (String(html).match(/partido_data_ppal[\s\S]*?<\/table>/) || [''])[0];
+  const venue = text((head.match(/<td[^>]*text-align:\s*center[^>]*>([\s\S]*?)<\/td>/) || [])[1] || '');
+  return { venue, home: sides[0] || { players: [], staff: [] }, away: sides[1] || { players: [], staff: [] } };
 }
 
 function createClient({ fetchImpl = globalThis.fetch, timeoutMs = 30000 } = {}) {

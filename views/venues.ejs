@@ -1,0 +1,42 @@
+<%- include('partials/head') %>
+<h1>Ubicacions</h1>
+<p class="muted small">Pavellons dels propers partits i els minuts des de casa que fa servir el càlcul de conflictes
+  (distància en línia recta × 1,3 a 50 km/h + aparcar). El pavelló es llegeix de les actes de la federació; si un equip encara no ha jugat a casa, en fem servir el nom.
+  <% if (isCoord) { %>Per corregir-ne un: a Google Maps, clic dret sobre el pavelló → clica les coordenades (es copien) i enganxa-les aquí. També val l'enllaç de compartir.<% } %></p>
+
+
+<% list.forEach((v) => { %>
+<section class="card venue<%= v.problem ? ' problem' : '' %>" id="<%= v.anchor %>">
+  <div class="head-row">
+    <h2><%= v.home ? '🏠 ' : '' %><%= tc(v.name) %></h2>
+    <span class="small"><% if (v.checked) { %><span class="pill new">✔ revisada</span><% } %>
+      <% v.flags.forEach(([k, t]) => { %><span class="pill <%= k === 'nom' ? '' : 'warn' %>"><%= t %></span> <% }) %></span>
+  </div>
+  <p class="small">
+    <% if (!v.home) { %>Hi juga a casa: <%= v.hosts.join(', ') %> · <% } %>
+    Nostres: <%= v.teams.join(', ') || '—' %> · <%= v.count %> partit<%= v.count === 1 ? '' : 's' %>, el proper <%= dayLabel(v.next, true) %>
+  </p>
+  <p class="small">
+    <% if (v.coords) { %>
+      <a href="https://www.google.com/maps/search/?api=1&query=<%= v.coords.lat %>,<%= v.coords.lng %>" target="_blank" rel="noopener">📍 Veure al mapa</a>
+      <span class="muted">(<%= v.coords.lat.toFixed(5) %>, <%= v.coords.lng.toFixed(5) %><%= v.coords.source === 'manual' ? ', posada a mà' : '' %>)</span>
+    <% } else { %><b>No en sabem la ubicació</b>: es compten <%= v.home ? 0 : v.minutes %> min.<% } %>
+    · <a href="https://www.google.com/maps/search/?api=1&query=<%= encodeURIComponent(`${v.name} ${v.home ? '' : v.hosts[0] || ''}`.trim()) %>" target="_blank" rel="noopener">🔎 Buscar-lo</a>
+  </p>
+  <% if (!v.home) { %>
+    <p><b><%= v.minutes %> min</b> des de casa
+      <span class="muted small"><%= v.saved?.minutes != null ? '(posats a mà' + (v.auto?.km != null ? `; el càlcul en dona ${v.auto.minutes}` : '') + ')' : v.auto?.estimated ? '(estimat: sense ubicació)' : `(~${v.auto.km} km per carretera)` %></span></p>
+  <% } %>
+  <% if (isCoord) { %>
+    <form method="post" action="/ubicacions" class="venue-form">
+      <input type="hidden" name="_csrf" value="<%= csrf %>"><input type="hidden" name="name" value="<%= v.name %>">
+      <label>Ubicació<input name="location" placeholder="41.5312, 2.1925 o enllaç de Google Maps"></label>
+      <% if (!v.home) { %><label>Minuts reals<input type="number" min="0" name="minutes" value="<%= v.saved?.minutes ?? '' %>" placeholder="<%= v.auto?.minutes ?? '' %>"></label><% } %>
+      <label class="check"><input type="checkbox" name="checked" value="1" <%= v.checked ? 'checked' : '' %>> Revisada</label>
+      <div class="row-actions"><button class="btn primary">Desar</button><% if (v.saved) { %><button class="btn" name="reset" value="1">Tornar a l'automàtica</button><% } %></div>
+    </form>
+  <% } %>
+</section>
+<% }) %>
+<% if (!list.length) { %><p class="muted">No hi ha partits propers.</p><% } %>
+<%- include('partials/foot') %>

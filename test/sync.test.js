@@ -115,3 +115,25 @@ test('rellotge: propera 07:00 de Madrid', () => {
   const ms = msUntilNext(7, new Date('2026-11-02T05:30:00Z')); // 06:30 a Madrid (UTC+1)
   assert.equal(ms, 30 * 60000);
 });
+
+test('pavellons: es llegeixen de l\'acta i dels partits a casa dels rivals que ens rebran', async () => {
+  const { db, sync, client } = setup();
+  const asked = [];
+  const original = client.acta;
+  client.acta = async (source, idp, group) => {
+    asked.push(idp);
+    const a = await original.call(client, source, idp, group);
+    return a.venue ? a : { ...a, venue: `PAVELLÓ ${idp}` };
+  };
+  await sync.run();
+  assert.match(db.prepare("SELECT venue FROM teams WHERE name = 'CH RIPOLLET B'").get().venue, /^PAVELLÓ /, 'el de la darrera acta a casa');
+  assert.equal(db.prepare("SELECT venue FROM matches WHERE idp = '154502'").get().venue, 'PAVELLÓ RIPOLLET');
+  const hosts = db.prepare(`SELECT DISTINCT t.venue FROM matches m JOIN teams t ON t.id = m.home_team_id
+    WHERE m.played = 0 AND t.own = 0 AND m.away_team_id IN (SELECT id FROM teams WHERE own = 1)`).all();
+  assert.ok(hosts.length > 0);
+  assert.ok(hosts.every((h) => h.venue === null || /^PAVELLÓ \d+$/.test(h.venue)), 'pavelló après o encara pendent si no ha jugat a casa');
+  const n = asked.length;
+  const retry = new Set(db.prepare("SELECT idp FROM matches WHERE played = 1 AND acta_loaded = 0 AND idp IS NOT NULL AND (home_team_id IN (SELECT id FROM teams WHERE own = 1) OR away_team_id IN (SELECT id FROM teams WHERE own = 1))").all().map((r) => r.idp));
+  await sync.run();
+  assert.ok(asked.slice(n).every((idp) => retry.has(idp)), 'només es tornen a demanar les actes buides, no les dels pavellons ja coneguts');
+});

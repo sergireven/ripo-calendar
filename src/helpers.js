@@ -32,7 +32,7 @@ function kindOf(c) {
 const sevIcon = (s) => (s === 'block' ? '⛔' : '⚠️');
 const roleText = (roles) => (roles?.length === 2 ? `${ROLE_LABEL[roles[0]]} ↔ ${ROLE_LABEL[roles[1]]}` : '');
 const weekendOf = (dayKey) => E.weekendDays(dayKey)[0] || '';
-const evText = (ev) => `${ev.time || '--:--'} ${ev.label} ${ev.isHome ? '(casa)' : '(fora)'}`;
+const evText = (ev) => `${ev.time || '--:--'} ${ev.label} ${ev.isHome ? 'vs' : 'a'} ${tc(ev.opponent || '')} (${ev.isHome ? 'casa' : 'fora'})`;
 
 module.exports = {
   DOW, ROLE_LABEL, dayLabel, tc, shortName, when, kindOf, sevIcon, roleText, evText, weekendOf,
