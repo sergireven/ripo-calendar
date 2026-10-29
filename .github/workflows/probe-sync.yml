@@ -1,0 +1,25 @@
+name: Sincronització real (temporal)
+on:
+  push:
+    branches: ['probe/sync']
+    paths: ['src/**', 'scripts/**', '.github/workflows/probe-sync.yml']
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '22', cache: npm }
+      - run: npm ci
+      - run: mkdir -p probe-out && DB_PATH=probe-out/calendar.db ACTA_LIMIT=600 node scripts/sync-now.js | tee probe-out/sync.log || true
+      - run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          sqlite3 probe-out/calendar.db "PRAGMA wal_checkpoint(TRUNCATE);" || true
+          rm -f probe-out/calendar.db-wal probe-out/calendar.db-shm
+          git add -f probe-out
+          git commit -m "Resultat sincronització real" || true
+          git push
