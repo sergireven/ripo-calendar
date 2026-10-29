@@ -6,10 +6,10 @@
     <label>Partit
       <select name="partit" data-autosubmit required>
         <option value="">Tria un partit…</option>
-        <% own.forEach((e) => { %><option value="<%= e.matchId %>" <%= target && target.matchId === e.matchId ? 'selected' : '' %>><%= dayLabel(e.dayKey, true) %> <%= e.time %> · <%= e.label %> <%= e.isHome ? 'vs' : '@' %> <%= title(e.opponent) %></option><% }) %>
+        <% own.forEach((e) => { %><option value="<%= e.matchId %>" <%= target && target.matchId === e.matchId ? 'selected' : '' %>><%= dayLabel(e.dayKey, true) %> <%= e.time %> · <%= e.label %> <%= e.isHome ? 'vs' : '@' %> <%= tc(e.opponent) %></option><% }) %>
       </select></label>
     <% if (target) { %>
-      <p class="small">Ara: <b><%= dayLabel(target.dayKey) %> <%= target.time %></b> · <%= target.isHome ? 'a casa' : 'fora, a ' + title(target.venue) %><%= target.proposalId ? ' (amb proposta pendent)' : '' %></p>
+      <p class="small">Ara: <b><%= dayLabel(target.dayKey) %> <%= target.time %></b> · <%= target.isHome ? 'a casa' : 'fora, a ' + tc(target.venue) %><%= target.proposalId ? ' (amb proposta pendent)' : '' %></p>
       <div class="grid2"><label>Nova data <input type="date" name="data" value="<%= date %>" required></label><label>Nova hora <input type="time" name="hora" value="<%= time %>" step="300" required></label></div>
       <div class="row-actions"><button class="btn primary">Analitzar</button><button class="btn" name="alternatives" value="1">Buscar alternatives</button></div>
     <% } %>

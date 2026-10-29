@@ -14,8 +14,8 @@ function dayLabel(dayKey, short = false) {
   return short ? `${wd} ${p.d}/${p.mo}` : `${DOW[wd]} ${p.d}/${p.mo}`;
 }
 
-const title = (s) => E.titleCase(s);
-const shortName = (s) => title(String(s || '').split(' ').slice(0, 2).join(' '));
+const tc = (s) => E.titleCase(s);
+const shortName = (s) => tc(String(s || '').split(' ').slice(0, 2).join(' '));
 
 /** "2026-10-29 17:05:00" (UTC de SQLite) → "29/10 18:05" a Madrid. */
 function when(sqlDate) {
@@ -35,6 +35,6 @@ const weekendOf = (dayKey) => E.weekendDays(dayKey)[0] || '';
 const evText = (ev) => `${ev.time || '--:--'} ${ev.label} ${ev.isHome ? '(casa)' : '(fora)'}`;
 
 module.exports = {
-  DOW, ROLE_LABEL, dayLabel, title, shortName, when, kindOf, sevIcon, roleText, evText, weekendOf,
+  DOW, ROLE_LABEL, dayLabel, tc, shortName, when, kindOf, sevIcon, roleText, evText, weekendOf,
   addDays: E.addDays, minutesToClock: E.minutesToClock, clockToMinutes: E.clockToMinutes,
 };

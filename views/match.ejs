@@ -2,9 +2,9 @@
 <% const ev = mine.find((e) => e.own) || mine[0]; %>
 <p class="crumbs"><a href="/?<%= ev && ev.teamId ? 'equip=' + ev.teamId : '' %>">← Calendari</a></p>
 <section class="card">
-  <h1><%= ev ? ev.label : title(match.home_name) %></h1>
-  <p class="big"><%= title(match.home_name) %> – <%= title(match.away_name) %><% if (match.score) { %> · <b><%= match.score %></b><% } %></p>
-  <p><b><%= match.date ? dayLabel(match.date) : 'Sense data' %> · <%= match.time || 'sense hora' %></b> · <%= ev && ev.isHome ? '🏠 a casa' : '🚗 fora, a ' + title(match.home_name) %></p>
+  <h1><%= ev ? ev.label : tc(match.home_name) %></h1>
+  <p class="big"><%= tc(match.home_name) %> – <%= tc(match.away_name) %><% if (match.score) { %> · <b><%= match.score %></b><% } %></p>
+  <p><b><%= match.date ? dayLabel(match.date) : 'Sense data' %> · <%= match.time || 'sense hora' %></b> · <%= ev && ev.isHome ? '🏠 a casa' : '🚗 fora, a ' + tc(match.home_name) %></p>
   <p class="muted small"><%= match.competition_name || 'Partit manual' %><% if (match.jornada) { %> · Jornada <%= match.jornada %><% } %><% if (match.status === 'eliminat') { %> · <b>ja no surt a la federació</b><% } %></p>
   <% if (staff.length) { %><p>📋 <% staff.forEach((p, i) => { %><%= i ? ', ' : '' %><a href="/persones/<%= p.id %>"><%= shortName(p.name) %></a><% }) %></p><% } %>
   <div class="row-actions">
@@ -30,7 +30,7 @@
       <label>🧤 Porter d'aquest partit
         <select name="person_id" data-autosubmit <%= isCoord ? '' : 'disabled' %>>
           <option value="">— Sense assignar —</option>
-          <% porterPool.forEach((p) => { %><option value="<%= p.id %>" <%= porter && porter.person_id === p.id ? 'selected' : '' %>><%= title(p.name) %> (<%= rotationCount(p.id) %>)</option><% }) %>
+          <% porterPool.forEach((p) => { %><option value="<%= p.id %>" <%= porter && porter.person_id === p.id ? 'selected' : '' %>><%= tc(p.name) %> (<%= rotationCount(p.id) %>)</option><% }) %>
         </select></label>
       <p class="muted small">Entre parèntesis, partits de porter que ja té assignats.</p>
     </form>
@@ -38,13 +38,13 @@
   <h3>Reforços</h3>
   <% const ref = assignments.filter((a) => a.type === 'reforç'); %>
   <% if (!ref.length) { %><p class="muted">Cap.</p><% } %>
-  <ul class="plain"><% ref.forEach((a) => { %><li><a href="/persones/<%= a.person_id %>"><%= title(a.name) %></a>
+  <ul class="plain"><% ref.forEach((a) => { %><li><a href="/persones/<%= a.person_id %>"><%= tc(a.name) %></a>
     <% if (isCoord) { %><form method="post" action="/partits/<%= match.id %>/assignacio/<%= a.id %>/treure" class="inline"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="link">treure</button></form><% } %></li><% }) %></ul>
   <% if (isCoord) { %><form method="post" action="/partits/<%= match.id %>/assignacio" class="inline-form">
     <input type="hidden" name="_csrf" value="<%= csrf %>"><input type="hidden" name="type" value="reforç">
-    <select name="person_id" required><option value="">Afegir reforç…</option><% allPeople.filter((p) => !players.includes(p)).forEach((p) => { %><option value="<%= p.id %>"><%= title(p.name) %></option><% }) %></select>
+    <select name="person_id" required><option value="">Afegir reforç…</option><% allPeople.filter((p) => !players.includes(p)).forEach((p) => { %><option value="<%= p.id %>"><%= tc(p.name) %></option><% }) %></select>
     <button class="btn">Afegir</button></form><% } %>
-  <details><summary class="muted">Jugadors de l'equip (<%= players.length %>)</summary><p class="small"><% players.forEach((p, i) => { %><%= i ? ' · ' : '' %><a href="/persones/<%= p.id %>"><%= title(p.name) %></a><%= p.porter ? ' 🧤' : '' %><% }) %></p></details>
+  <details><summary class="muted">Jugadors de l'equip (<%= players.length %>)</summary><p class="small"><% players.forEach((p, i) => { %><%= i ? ' · ' : '' %><a href="/persones/<%= p.id %>"><%= tc(p.name) %></a><%= p.porter ? ' 🧤' : '' %><% }) %></p></details>
 </section>
 <% } %>
 

@@ -14,7 +14,7 @@
     <div class="list">
     <% items.forEach((i) => { %>
       <div class="item <%= i.unknown.length ? 'bad-border' : '' %>">
-        <span class="item-main"><b><%= i.name %></b> <span class="pill <%= i.existing ? '' : 'new' %>"><%= i.existing ? 'actualitza ' + title(i.existing.name) : 'nova' %></span><%= i.porter ? ' 🧤' : '' %></span>
+        <span class="item-main"><b><%= i.name %></b> <span class="pill <%= i.existing ? '' : 'new' %>"><%= i.existing ? 'actualitza ' + tc(i.existing.name) : 'nova' %></span><%= i.porter ? ' 🧤' : '' %></span>
         <span class="item-sub"><%= i.teams.length ? i.teams.map((t) => ({ juga: '🏒', entrena: '📋', ajuda: '🤝' }[t.role]) + ' ' + t.label).join(' · ') : 'Sense equips' %><% if (i.unknown.length) { %> · <span class="bad">No reconegut: <%= i.unknown.join(', ') %></span><% } %></span>
       </div>
     <% }) %>

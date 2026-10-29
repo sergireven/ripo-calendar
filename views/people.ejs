@@ -21,7 +21,7 @@
   <% if (!list.length) { %><p class="muted">Cap persona amb aquest filtre.</p><% } %>
   <% list.slice(0, 300).forEach((p) => { %>
     <a class="item" href="/persones/<%= p.id %>">
-      <span class="item-main"><b><%= title(p.name) %></b><%= p.porter ? ' 🧤' : '' %><%= p.active ? '' : ' · inactiva' %>
+      <span class="item-main"><b><%= tc(p.name) %></b><%= p.porter ? ' 🧤' : '' %><%= p.active ? '' : ' · inactiva' %>
         <% if (blocks.get(p.id)) { %><span class="pill block">⛔ <%= blocks.get(p.id) %></span><% } %></span>
       <span class="item-sub"><% p.teams.forEach((t, i) => { const tm = teams.get(t.teamId); %><%= i ? ' · ' : '' %><%= { juga: '🏒', entrena: '📋', ajuda: '🤝' }[t.role] %> <%= tm ? tm.label : '?' %><% }) %><%= p.teams.length ? '' : 'Sense equip' %></span>
     </a>

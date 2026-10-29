@@ -48,7 +48,7 @@
   <form method="post" action="/config/trajectes" class="stack">
     <input type="hidden" name="_csrf" value="<%= csrf %>">
     <% venues.forEach((v) => { %>
-      <label class="rule"><span><%= title(v.name) %><br><span class="muted small"><%= v.auto.estimated ? '? sense ubicació' : `auto: ${v.auto.minutes} min · ~${v.auto.km} km` %></span></span>
+      <label class="rule"><span><%= tc(v.name) %><br><span class="muted small"><%= v.auto.estimated ? '? sense ubicació' : `auto: ${v.auto.minutes} min · ~${v.auto.km} km` %></span></span>
         <input type="number" min="0" name="t_<%= v.base %>" value="<%= cfg.travelOverrides[v.base] ?? '' %>" placeholder="<%= v.auto.minutes %>"></label>
     <% }) %>
     <button class="btn primary">Desar</button>
@@ -62,7 +62,7 @@
     <input type="hidden" name="_csrf" value="<%= csrf %>">
     <% families.forEach((f) => { %>
       <input type="hidden" name="all" value="<%= f.key %>">
-      <label class="check"><input type="checkbox" name="on" value="<%= f.key %>" <%= (cfg.disabledFamilies || []).includes(f.key) ? '' : 'checked' %>> <b><%= title(f.label) %></b> <span class="muted small"><%= f.members.map((m) => shortName(m.name)).join(' · ') %></span></label>
+      <label class="check"><input type="checkbox" name="on" value="<%= f.key %>" <%= (cfg.disabledFamilies || []).includes(f.key) ? '' : 'checked' %>> <b><%= tc(f.label) %></b> <span class="muted small"><%= f.members.map((m) => shortName(m.name)).join(' · ') %></span></label>
     <% }) %>
     <button class="btn primary">Desar</button>
   </form>
@@ -84,7 +84,7 @@
 <section class="card" id="usuaris">
   <h2>Usuaris</h2>
   <% users.forEach((u) => { %>
-    <div class="team-row"><span><b><%= u.name %></b> · <%= u.email %> · <%= u.role %><%= u.person_name ? ' · agenda de ' + title(u.person_name) : '' %></span>
+    <div class="team-row"><span><b><%= u.name %></b> · <%= u.email %> · <%= u.role %><%= u.person_name ? ' · agenda de ' + tc(u.person_name) : '' %></span>
       <% if (u.id !== user.id) { %><form method="post" action="/config/usuaris/<%= u.id %>/esborrar" class="inline" onsubmit="return confirm('Esborrar l\'usuari?')"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="link small">esborrar</button></form><% } %></div>
   <% }) %>
   <form method="post" action="/config/usuaris" class="stack">
@@ -95,7 +95,7 @@
       <label>Rol <select name="role"><option value="entrenador">Entrenador (veu i comenta)</option><option value="coordinador">Coordinador (ho pot fer tot)</option></select></label>
       <label>Contrasenya (mín. 8) <input name="password" minlength="8" required></label>
     </div>
-    <label>Persona (per a «La meva agenda») <select name="person_id"><option value="">—</option><% people.forEach((p) => { %><option value="<%= p.id %>"><%= title(p.name) %></option><% }) %></select></label>
+    <label>Persona (per a «La meva agenda») <select name="person_id"><option value="">—</option><% people.forEach((p) => { %><option value="<%= p.id %>"><%= tc(p.name) %></option><% }) %></select></label>
     <button class="btn primary">Desar usuari</button>
   </form>
   <h3>Darrers correus</h3>

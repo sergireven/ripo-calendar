@@ -2,7 +2,7 @@
 <p class="crumbs"><a href="/persones">← Persones</a></p>
 <% const roleIcon = { juga: '🏒', entrena: '📋', ajuda: '🤝' }; %>
 <section class="card">
-  <div class="head-row"><h1><%= title(person.name) %><%= person.porter ? ' 🧤' : '' %></h1><a class="btn small" href="/?persona=<%= person.id %>">Veure al calendari</a></div>
+  <div class="head-row"><h1><%= tc(person.name) %><%= person.porter ? ' 🧤' : '' %></h1><a class="btn small" href="/?persona=<%= person.id %>">Veure al calendari</a></div>
   <% if (person.player_id) { %><p class="muted small">Vinculada a les actes de la federació (id <%= person.player_id %>).</p><% } %>
   <% if (person.notes) { %><p class="pre"><%= person.notes %></p><% } %>
   <form method="post" action="/persones/<%= person.id %>" class="stack">
@@ -48,7 +48,7 @@
     <% search.forEach((t) => { %>
       <form method="post" action="/persones/<%= person.id %>/equips" class="inline-form result">
         <input type="hidden" name="_csrf" value="<%= csrf %>"><input type="hidden" name="team_id" value="<%= t.id %>">
-        <span><b><%= title(t.name) %></b> <span class="muted small"><%= t.competition_name %></span></span>
+        <span><b><%= tc(t.name) %></b> <span class="muted small"><%= t.competition_name %></span></span>
         <select name="role"><option value="juga">Juga</option><option value="entrena">Entrena</option><option value="ajuda">Ajudant</option></select>
         <button class="btn small">Afegir</button>
       </form>
@@ -63,7 +63,7 @@
   <% let wk = null; agenda.forEach(({ ev, severity, role, conflicts: cs }) => { const sat = ev.dayKey ? weekendOf(ev.dayKey) : ''; if (sat !== wk) { wk = sat; %><h3><%= sat ? 'Cap de setmana ' + dayLabel(sat, true) : '' %></h3><% } %>
     <a class="agenda <%= severity || '' %>" href="/partits/<%= ev.matchId %>">
       <span class="when"><%= dayLabel(ev.dayKey, true) %> <b><%= ev.time || '--:--' %></b></span>
-      <span><%= roleIcon[role] || '' %> <b><%= ev.label %></b> <span class="muted"><%= ev.isHome ? 'a casa' : 'a ' + title(ev.venue) %></span><%= ev.proposalId ? ' · proposta' : '' %>
+      <span><%= roleIcon[role] || '' %> <b><%= ev.label %></b> <span class="muted"><%= ev.isHome ? 'a casa' : 'a ' + tc(ev.venue) %></span><%= ev.proposalId ? ' · proposta' : '' %>
         <% cs.forEach((c) => { const o = c.a.key === ev.key ? c.b : c.a; %><span class="cmsg"><%= sevIcon(c.severity) %> amb <%= o.label %> (<%= o.time %>): <%= c.message %></span><% }) %></span>
     </a>
   <% }) %>

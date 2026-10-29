@@ -7,7 +7,7 @@
     </select>
     <select name="persona" data-autosubmit aria-label="Persona">
       <option value="">Agenda d'una persona…</option>
-      <% people.forEach((p) => { %><option value="<%= p.id %>" <%= String(p.id) === String(person) ? 'selected' : '' %>><%= title(p.name) %></option><% }) %>
+      <% people.forEach((p) => { %><option value="<%= p.id %>" <%= String(p.id) === String(person) ? 'selected' : '' %>><%= tc(p.name) %></option><% }) %>
     </select>
     <% if (user.person_id) { %><a class="btn small" href="/?persona=<%= user.person_id %>">La meva agenda</a><% } %>
     <% if (team || person) { %><a class="btn small" href="/">Treure filtre</a><% } %>
@@ -21,7 +21,7 @@
       <label>Equip del club <select name="team_id"><option value="">— Cap (només una persona) —</option><% teams.forEach((t) => { %><option value="<%= t.id %>"><%= t.label %></option><% }) %></select></label>
       <label class="check"><input type="checkbox" name="home" value="1"> Es juga a casa</label>
       <label>Pista (si és fora) <input name="place" placeholder="Nom de l'equip local o del pavelló"></label>
-      <label>Persona convocada <select name="person_id"><option value="">—</option><% people.forEach((p) => { %><option value="<%= p.id %>"><%= title(p.name) %></option><% }) %></select></label>
+      <label>Persona convocada <select name="person_id"><option value="">—</option><% people.forEach((p) => { %><option value="<%= p.id %>"><%= tc(p.name) %></option><% }) %></select></label>
       <button class="btn primary">Afegir</button>
     </form></details><% } %>
 </div>

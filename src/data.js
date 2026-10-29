@@ -13,6 +13,7 @@ const CAT_ORDER = ['Prebenjamí', 'Benjamí', 'Aleví', 'Infantil', 'Juvenil', '
 
 /** Data d'avui a Madrid (YYYY-MM-DD). */
 function todayKey(now = new Date()) {
+  if (process.env.TODAY) return process.env.TODAY; // només per a proves
   return new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Madrid', year: 'numeric', month: '2-digit', day: '2-digit' }).format(now);
 }
 

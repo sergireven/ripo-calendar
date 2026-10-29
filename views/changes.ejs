@@ -11,7 +11,7 @@
 <section class="card list">
 <% list.forEach((c) => { %>
   <a class="item <%= c.seen ? '' : 'unseen' %>" href="/partits/<%= c.match_id %>">
-    <span class="item-main"><%= c.seen ? '' : '🆕 ' %><b><%= c.label || 'Partit' %></b> <span class="muted"><%= title(c.home_name) %> – <%= title(c.away_name) %></span></span>
+    <span class="item-main"><%= c.seen ? '' : '🆕 ' %><b><%= c.label || 'Partit' %></b> <span class="muted"><%= tc(c.home_name) %> – <%= tc(c.away_name) %></span></span>
     <span class="item-sub"><%= c.type === 'canvi' ? `🔁 ${c.before} → ${c.after}` : c.type === 'nou' ? `🆕 Nou: ${c.after}` : `🗑️ Ja no surt (era ${c.before})` %> · <span class="muted"><%= when(c.detected_at) %></span></span>
   </a>
 <% }) %>
