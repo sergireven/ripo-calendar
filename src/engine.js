@@ -10,7 +10,7 @@
  *    o un partit a casa dins d'una franja bloquejada.
  *  - Persona (bloqueig si juga/entrena, avís si és ajudant): no pot arribar a dos partits.
  *    Casa→casa: només cal que no es solapin. Si algun és fora: partit + trajecte + arribada.
- *  - Germans (avís): membres d'una família en partits incompatibles.
+ *  - Germans (avís): germans que juguen en partits incompatibles (no compta qui entrena).
  *  - Marge molt just (avís): hi ha desplaçament i sobren menys de `tightMarginMinutes`.
  */
 'use strict';
@@ -24,7 +24,7 @@ const DEFAULT_CONFIG = Object.freeze({
   roadFactor: 1.3,
   parkingMinutes: 10,
   tightMarginMinutes: 15,
-  minAppearances: 1,
+  minAppearances: 2,        // actes perquè algú compti com a membre d'un equip (1 = també qui hi ha anat un sol dia)
   gridMinCount: 2,
 });
 
@@ -455,8 +455,10 @@ function detectConflicts(events, model) {
       for (let j = i + 1; j < fam.members.length; j++) {
         const p1 = fam.members[i];
         const p2 = fam.members[j];
-        for (const { ev: a } of mineById.get(p1.id) || []) {
-          for (const { ev: b } of mineById.get(p2.id) || []) {
+        // Només com a jugadors: l'avís és per a les famílies que porten els nens a dos llocs.
+        const playing = (id) => (mineById.get(id) || []).filter((x) => x.role === 'juga');
+        for (const { ev: a } of playing(p1.id)) {
+          for (const { ev: b } of playing(p2.id)) {
             if (a.dayKey !== b.dayKey || a.matchId === b.matchId) continue;
             if (found.has(conflictId('persona', a, b)) || found.has(conflictId('persona', b, a))) continue;
             const t = checkTiming(a, b, resolve, cfg);

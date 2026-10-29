@@ -1,9 +1,14 @@
 <%- include('partials/head') %>
-<h1>Conflictes dels propers partits</h1>
-<p class="muted"><b><%= blocks %></b> bloquejos i <b><%= total - blocks %></b> avisos. Bloqueig: no es pot jugar així. Avís: germans, ajudants o marge molt just.</p>
+<h1>Conflictes</h1>
+<p class="muted">Properes <%= weeks === 52 ? 'setmanes de la temporada' : weeks + ' setmanes' %>: <b><%= blocks %></b> bloquejos i <b><%= total - blocks %></b> avisos<%= weeks !== 52 ? ` (${season} a tota la temporada)` : '' %>. Bloqueig: no es pot jugar així. Avís: germans, ajudants o marge molt just.</p>
 <div class="tabs">
   <% [['tots', 'Tots'], ['block', 'Bloquejos'], ['warn', 'Avisos'], ['entrenadors', 'Entrenadors']].forEach(([k, l]) => { %>
-    <a href="/conflictes?tipus=<%= k %>" class="<%= filter === k ? 'on' : '' %>"><%= l %></a>
+    <a href="/conflictes?tipus=<%= k %>&setmanes=<%= weeks %>" class="<%= filter === k ? 'on' : '' %>"><%= l %></a>
+  <% }) %>
+</div>
+<div class="tabs">
+  <% [[2, '2 setmanes'], [4, '4 setmanes'], [8, '8 setmanes'], [52, 'Tota la temporada']].forEach(([w, l]) => { %>
+    <a href="/conflictes?tipus=<%= filter %>&setmanes=<%= w %>" class="<%= weeks === w ? 'on' : '' %>"><%= l %></a>
   <% }) %>
 </div>
 <% if (!list.length) { %><section class="card ok">✓ Cap conflicte amb aquest filtre.</section><% } %>

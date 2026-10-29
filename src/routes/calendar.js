@@ -158,8 +158,11 @@ module.exports = (app, { db }) => {
   app.get('/conflictes', (req, res) => {
     const { conflicts } = analyze(db, { withProposals: req.query.propostes === '1' });
     const filter = req.query.tipus || 'tots';
-    const list = conflicts.filter((c) => filter === 'tots' || c.severity === filter || (filter === 'entrenadors' && c.people.some((p) => p.roles.includes('entrena'))));
-    res.render('conflicts', { title: 'Conflictes', list, filter, total: conflicts.length, blocks: conflicts.filter((c) => c.severity === 'block').length });
+    const weeks = [2, 4, 8, 52].includes(Number(req.query.setmanes)) ? Number(req.query.setmanes) : 4;
+    const until = E.addDays(todayKey(), weeks * 7);
+    const inRange = conflicts.filter((c) => c.a.dayKey < until);
+    const list = inRange.filter((c) => filter === 'tots' || c.severity === filter || (filter === 'entrenadors' && c.people.some((p) => p.roles.includes('entrena'))));
+    res.render('conflicts', { title: 'Conflictes', list, filter, weeks, total: inRange.length, blocks: inRange.filter((c) => c.severity === 'block').length, season: conflicts.length });
   });
 };
 

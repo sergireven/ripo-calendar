@@ -73,6 +73,11 @@ function sameNameAndTeam(people, name, teams) {
     if (!rest.every((w) => pr.includes(w))) return false;
     return p.teams.some((t) => ids.has(t.teamId));
   });
+  if (cands.length > 1) {
+    // Desempat: mateix rol al mateix equip (l'entrenador «Pol» és el Pol que entrena, no un jugador).
+    const sameRole = cands.filter((p) => p.teams.some((t) => teams.some((x) => x.teamId === t.teamId && x.role === t.role)));
+    return sameRole.length === 1 ? sameRole[0] : null;
+  }
   return cands.length === 1 ? cands[0] : null;
 }
 

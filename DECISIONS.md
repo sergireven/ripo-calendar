@@ -37,3 +37,19 @@ Un `setTimeout` que calcula la propera 07:00 d'Europe/Madrid amb `Intl` i es rep
 - `appearances` guarda qui ha sortit a cada acta. Els equips "automàtics" d'una persona són els que apareixen en almenys N actes (Configuració, per defecte 1).
 - Una persona de l'Excel es vincula amb les actes per `ID jok` o pel nom (tots els mots del nom curt dins del nom complet, si només hi ha una coincidència).
 - El cos tècnic de les actes no té id: s'enllaça pel nom amb el mateix criteri.
+
+## 5. Qui compta com a membre d'un equip: 2 actes (no 1)
+
+Amb dades reals, un entrenador que cobreix un sol dia un altre equip quedava lligat a aquell equip tota la temporada i omplia la llista de bloquejos falsos (165 conflictes; 18 només d'un entrenador). Amb mínim 2 actes queden 124 i els que surten són reals. Es pot canviar a Configuració → Regles, i qualsevol reforç concret es pot apuntar al partit.
+
+## 6. Avís de germans només entre jugadors
+
+Els germans adults que entrenen (p. ex. dos germans entrenadors) no necessiten l'avís: és per a les famílies que han de portar dos nens a llocs diferents.
+
+## 7. Àlies en importar l'Excel
+
+«Cesc», «Dani Miras» o «Pol» de l'Excel es vinculen sols amb «Francesc Navarra Garcia», «Daniel Miras Valero»… de les actes si el nom de pila encaixa (inici o final), la resta de mots hi són i comparteixen equip (desempat pel rol). Es queda el nom més complet. Si no hi ha una única coincidència, es crea una fitxa nova i es pot **fusionar** a mà des de la fitxa.
+
+## 8. Migracions mínimes
+
+`src/db.js` afegeix soles les columnes noves a una base de dades existent (`ADDED_COLUMNS`). Res d'eines de migració.
