@@ -62,7 +62,8 @@ CREATE TABLE IF NOT EXISTS person_teams (
 CREATE TABLE IF NOT EXISTS matches (
   id             INTEGER PRIMARY KEY AUTOINCREMENT,
   competition_id INTEGER REFERENCES competitions(id) ON DELETE CASCADE,
-  source_key     TEXT UNIQUE,          -- fecapa:154502 · rfep:31483 · null si és manual
+  source_key     TEXT UNIQUE,          -- fecapa:{grup}:{jornada}:{idLocal}:{idVisitant} · null si és manual
+  idp            TEXT,                 -- id del partit a sidgad (només quan hi ha acta)
   jornada        INTEGER,
   home_team_id   INTEGER REFERENCES teams(id) ON DELETE SET NULL,
   away_team_id   INTEGER REFERENCES teams(id) ON DELETE SET NULL,
