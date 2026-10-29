@@ -93,8 +93,13 @@ module.exports = (app, { db }) => {
     const search = q.length >= 3 ? [...teams.values()].filter((t) => !person.teams.some((x) => x.teamId === t.id)
       && E.norm(`${t.name} ${t.competition_name}`).includes(q)).slice(0, 12) : [];
     const appearances = db.prepare(`SELECT team_id, role, COUNT(*) n FROM appearances WHERE person_id = ? GROUP BY team_id, role`).all(id);
+    // Per fusionar: primer les fitxes que comparteixen nom o cognom.
+    const words = new Set(E.nameTokens(person.name));
+    const others = db.prepare('SELECT id, name FROM people WHERE id != ? ORDER BY name').all(id)
+      .map((p) => ({ ...p, score: E.nameTokens(p.name).filter((w) => words.has(w) || [...words].some((x) => x.length > 2 && (w.startsWith(x) || x.startsWith(w)))).length }))
+      .sort((a, b) => b.score - a.score || a.name.localeCompare(b.name));
     res.render('person', {
-      title: E.titleCase(person.name), person, teams, clubTeams: clubTeams(db), agenda, conflicts: mine, search, cerca: req.query.cerca || '', appearances,
+      title: E.titleCase(person.name), person, others, teams, clubTeams: clubTeams(db), agenda, conflicts: mine, search, cerca: req.query.cerca || '', appearances,
       excluded: db.prepare("SELECT team_id FROM person_teams WHERE person_id = ? AND role = 'cap'").all(id).map((r) => teams.get(r.team_id)).filter(Boolean),
       comments: db.prepare(`SELECT c.*, u.name AS author FROM comments c LEFT JOIN users u ON u.id = c.user_id WHERE entity_type = 'person' AND entity_id = ? ORDER BY c.id`).all(id),
     });
@@ -137,6 +142,28 @@ module.exports = (app, { db }) => {
   app.post('/persones/:id/equips/:teamId/recuperar', requireCoordinator, (req, res) => {
     db.prepare("DELETE FROM person_teams WHERE person_id = ? AND team_id = ? AND role = 'cap'").run(req.params.id, req.params.teamId);
     res.redirect(`/persones/${req.params.id}`);
+  });
+
+  /** Fusiona una altra fitxa dins d'aquesta (p. ex. «Cesc» de l'Excel amb «Francesc Navarra Garcia» de les actes). */
+  app.post('/persones/:id/fusionar', requireCoordinator, (req, res) => {
+    const keep = db.prepare('SELECT * FROM people WHERE id = ?').get(req.params.id);
+    const drop = db.prepare('SELECT * FROM people WHERE id = ?').get(req.body.other_id);
+    if (!keep || !drop || keep.id === drop.id) { req.flash('error', 'Tria una altra persona.'); return res.redirect(`/persones/${req.params.id}`); }
+    db.transaction(() => {
+      for (const t of db.prepare('SELECT * FROM person_teams WHERE person_id = ?').all(drop.id)) {
+        db.prepare('INSERT OR IGNORE INTO person_teams (person_id, team_id, role) VALUES (?, ?, ?)').run(keep.id, t.team_id, t.role);
+      }
+      db.prepare('UPDATE OR IGNORE appearances SET person_id = ? WHERE person_id = ?').run(keep.id, drop.id);
+      db.prepare('UPDATE OR IGNORE assignments SET person_id = ? WHERE person_id = ?').run(keep.id, drop.id);
+      db.prepare("UPDATE comments SET entity_id = ? WHERE entity_type = 'person' AND entity_id = ?").run(keep.id, drop.id);
+      db.prepare('UPDATE users SET person_id = ? WHERE person_id = ?').run(keep.id, drop.id);
+      db.prepare('DELETE FROM people WHERE id = ?').run(drop.id);
+      const notes = [keep.notes, drop.notes].filter(Boolean).join('\n') || null;
+      db.prepare('UPDATE people SET player_id = COALESCE(player_id, ?), family = COALESCE(family, ?), porter = MAX(porter, ?), notes = ?, auto = 0 WHERE id = ?')
+        .run(drop.player_id, drop.family, drop.porter, notes, keep.id);
+    })();
+    req.flash('ok', `${E.titleCase(drop.name)} fusionat amb aquesta fitxa. Revisa els equips.`);
+    res.redirect(`/persones/${keep.id}`);
   });
 
   app.post('/persones/:id/esborrar', requireCoordinator, (req, res) => {

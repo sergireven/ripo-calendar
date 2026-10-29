@@ -64,10 +64,22 @@
     <a class="agenda <%= severity || '' %>" href="/partits/<%= ev.matchId %>">
       <span class="when"><%= dayLabel(ev.dayKey, true) %> <b><%= ev.time || '--:--' %></b></span>
       <span><%= roleIcon[role] || '' %> <b><%= ev.label %></b> <span class="muted"><%= ev.isHome ? 'a casa' : 'a ' + tc(ev.venue) %></span><%= ev.proposalId ? ' · proposta' : '' %>
-        <% cs.forEach((c) => { const o = c.a.key === ev.key ? c.b : c.a; %><span class="cmsg"><%= sevIcon(c.severity) %> amb <%= o.label %> (<%= o.time %>): <%= c.message %></span><% }) %></span>
+        <% cs.forEach((c) => { const o = c.a.key === ev.key ? c.b : c.a; %><span class="cmsg"><%= sevIcon(c.severity) %> <%= c.type === 'germans' ? 'germà/na: ' : '' %>xoca amb <%= o.label %> (<%= o.time %>)</span><% }) %></span>
     </a>
   <% }) %>
 </section>
+<% if (isCoord) { %>
+<section class="card">
+  <h2>Fusionar amb una altra fitxa</h2>
+  <p class="muted small">Si la mateixa persona surt dues vegades (p. ex. «Cesc» de l'Excel i «Francesc Navarra Garcia» de les actes), tria l'altra fitxa: tot passarà a aquesta.</p>
+  <form method="post" action="/persones/<%= person.id %>/fusionar" class="inline-form" onsubmit="return confirm('Fusionar les dues fitxes? No es pot desfer.')">
+    <input type="hidden" name="_csrf" value="<%= csrf %>">
+    <select name="other_id" required><option value="">Tria la fitxa duplicada…</option>
+      <% others.forEach((o) => { %><option value="<%= o.id %>"><%= o.score ? '★ ' : '' %><%= tc(o.name) %></option><% }) %></select>
+    <button class="btn">Fusionar</button>
+  </form>
+</section>
+<% } %>
 <% if (isCoord) { %><form method="post" action="/persones/<%= person.id %>/esborrar" class="inline" onsubmit="return confirm('Segur?')"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="link">Esborrar o desactivar aquesta persona</button></form><% } %>
 <%- include('partials/comments', { entityType: 'person', entityId: person.id, comments, back: '/persones/' + person.id }) %>
 <%- include('partials/foot') %>

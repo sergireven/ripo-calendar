@@ -22,7 +22,7 @@
   <% if (!sim.blocks) { %><p class="big ok">✓ Es pot acceptar<%= sim.warns ? ` (amb ${sim.warns} avís${sim.warns > 1 ? 'os' : ''})` : '' %></p>
   <% } else { %><p class="big bad">⛔ Genera <%= sim.blocks %> bloqueig<%= sim.blocks > 1 ? 's' : '' %></p><% } %>
   <% if (sim.event.isHome) { %><p>🏟️ <%= sim.inGrid ? 'Franja habitual de la parrilla' : 'Fora de la parrilla habitual (' + (sim.gridTimes.join(' · ') || 'sense franges aquest dia') + ')' %> · <%= sim.pista.free %> franges lliures aquell dia</p><% } %>
-  <% if (sim.affected.length) { %><p>👤 Afecta: <%= sim.affected.map(title).join(', ') %></p><% } %>
+  <% if (sim.affected.length) { %><p>👤 Afecta: <%= sim.affected.map(tc).join(', ') %></p><% } %>
   <% if (sim.resolved.length) { %><p class="ok">✓ Resol <%= sim.resolved.length %> conflicte<%= sim.resolved.length > 1 ? 's' : '' %> que hi havia</p><% } %>
   <% sim.after.forEach((c) => { %><%- include('partials/conflict', { c, showDate: true }) %><% }) %>
   <% if (isCoord) { %>

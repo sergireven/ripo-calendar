@@ -59,6 +59,23 @@ function resolveExternal(db, text) {
   return c.length === 1 ? c[0].id : null;
 }
 
+/**
+ * «Dani Miras» → «Daniel Miras Valero», «Cesc» → «Francesc Navarra Garcia»: el nom de pila encaixa (inici o final),
+ * la resta de mots hi són i comparteixen algun equip. Només si hi ha un sol candidat.
+ */
+function sameNameAndTeam(people, name, teams) {
+  const [first, ...rest] = E.nameTokens(name);
+  if (!first || !teams.length) return null;
+  const ids = new Set(teams.map((t) => t.teamId));
+  const cands = people.filter((p) => {
+    const [pf, ...pr] = E.nameTokens(p.name);
+    if (!pf || !(pf.startsWith(first) || first.startsWith(pf) || (first.length >= 4 && pf.endsWith(first)))) return false;
+    if (!rest.every((w) => pr.includes(w))) return false;
+    return p.teams.some((t) => ids.has(t.teamId));
+  });
+  return cands.length === 1 ? cands[0] : null;
+}
+
 /** Previsualització: què es crearà o s'actualitzarà, i què no s'ha reconegut. */
 function previewImport(db, buffer) {
   const wb = XLSX.read(buffer, { type: 'buffer' });
@@ -71,6 +88,7 @@ function previewImport(db, buffer) {
     const t = db.prepare('SELECT t.name, c.name AS comp FROM teams t JOIN competitions c ON c.id = t.competition_id WHERE t.id = ?').get(id);
     return t ? `${E.titleCase(t.name)} (${t.comp})` : String(id);
   })();
+  const people = peopleWithTeams(db, 1);
   const items = [];
   for (const row of rows) {
     const name = cell(row, 'Nom');
@@ -88,7 +106,8 @@ function previewImport(db, buffer) {
       if (id) teams.push({ teamId: id, role: 'juga', label: labelOf(id) }); else unknown.push(t);
     }
     const jok = cell(row, 'ID jok').replace(/\D/g, '');
-    const existing = (jok && db.prepare('SELECT * FROM people WHERE player_id = ?').get(jok)) || findPersonByName(db, name);
+    const existing = (jok && db.prepare('SELECT * FROM people WHERE player_id = ?').get(jok)) || findPersonByName(db, name)
+      || sameNameAndTeam(people, name, teams);
     items.push({
       name, teams, unknown, playerId: jok || null,
       existing: existing ? { id: existing.id, name: existing.name } : null,
@@ -104,8 +123,11 @@ const applyImport = (db, items) => db.transaction(() => {
   for (const it of items) {
     let id = it.existing?.id;
     if (id) {
+      // Es queda el nom més complet (el de les actes sol tenir els dos cognoms).
+      const current = db.prepare('SELECT name FROM people WHERE id = ?').get(id).name;
+      const name = E.nameTokens(current).length > E.nameTokens(it.name).length ? current : it.name;
       db.prepare(`UPDATE people SET name = ?, family = COALESCE(NULLIF(?, ''), family), porter = MAX(porter, ?), notes = COALESCE(NULLIF(?, ''), notes),
-        player_id = COALESCE(player_id, ?), auto = 0 WHERE id = ?`).run(it.name, it.family, it.porter ? 1 : 0, it.notes, it.playerId, id);
+        player_id = COALESCE(player_id, ?), auto = 0 WHERE id = ?`).run(name, it.family, it.porter ? 1 : 0, it.notes, it.playerId, id);
       updated++;
     } else {
       const clash = it.playerId && db.prepare('SELECT 1 FROM people WHERE player_id = ?').get(it.playerId);

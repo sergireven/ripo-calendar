@@ -175,7 +175,21 @@ function openDb(file) {
   db.pragma('journal_mode = WAL');
   db.pragma('foreign_keys = ON');
   db.exec(SCHEMA);
+  migrate(db);
   return db;
+}
+
+/** Columnes afegides després de la primera versió: s'afegeixen soles a les bases de dades existents. */
+const ADDED_COLUMNS = [
+  ['users', 'person_id', 'INTEGER REFERENCES people(id) ON DELETE SET NULL'],
+  ['matches', 'idp', 'TEXT'],
+];
+
+function migrate(db) {
+  for (const [table, column, ddl] of ADDED_COLUMNS) {
+    const has = db.prepare(`PRAGMA table_info(${table})`).all().some((c) => c.name === column);
+    if (!has) db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${ddl}`);
+  }
 }
 
 /** Paràmetres de configuració (JSON per clau) amb valors per defecte. */

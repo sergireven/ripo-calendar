@@ -129,12 +129,15 @@ a.item:hover { background: var(--gray-bg); text-decoration: none; }
 .fc { --fc-border-color: #e5e7eb; --fc-today-bg-color: #fffbe6; font-size: .88rem; }
 .fc .fc-toolbar-title { font-size: 1.1rem; }
 .fc .fc-button { padding: .3rem .55rem; }
-.fc-event, .legend span { background: var(--blue-bg) !important; color: var(--ink) !important; border: 0 !important; border-left: 4px solid var(--blue) !important; }
-.ev-fora { background: var(--gray-bg) !important; border-left-color: #94a3b8 !important; }
-.ev-casa { border-left-color: var(--blue) !important; }
-.ev-warn { background: var(--amber-bg) !important; border-left-color: var(--amber) !important; }
-.ev-block { background: var(--red-bg) !important; border-left-color: var(--red) !important; }
-.ev-proposta { background: var(--purple-bg) !important; border-left-color: var(--purple) !important; }
+.fc .fc-event, .legend span { background: var(--blue-bg) !important; color: var(--ink) !important; border: 0 !important; border-left: 4px solid var(--blue) !important; }
+.fc .ev-fora, .legend .ev-fora { background: var(--gray-bg) !important; border-left-color: #94a3b8 !important; }
+.fc .ev-warn, .legend .ev-warn { background: var(--amber-bg) !important; border-left-color: var(--amber) !important; }
+.fc .ev-block, .legend .ev-block { background: var(--red-bg) !important; border-left-color: var(--red) !important; }
+.fc .ev-proposta, .legend .ev-proposta { background: var(--purple-bg) !important; border-left-color: var(--purple) !important; }
+.fc .fc-list-event.ev-block .fc-list-event-dot { border-color: var(--red); }
+.fc .fc-list-event.ev-warn .fc-list-event-dot { border-color: var(--amber); }
+.fc .fc-list-event.ev-fora .fc-list-event-dot { border-color: #94a3b8; }
+.fc .fc-list-event.ev-proposta .fc-list-event-dot { border-color: var(--purple); }
 .ev-extern { opacity: .85; font-style: italic; }
 .fc-event .fc-event-main, .fc-list-event td { color: var(--ink) !important; }
 .fc-daygrid-event { white-space: normal !important; }

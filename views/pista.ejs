@@ -43,7 +43,7 @@
   <h2>Propers caps de setmana</h2>
   <% weekends.forEach((w) => { %>
     <a class="item" href="/pista?dia=<%= w.sat %>"><span class="item-main"><b><%= dayLabel(w.sat, true) %> – <%= dayLabel(addDays(w.sat, 1), true) %></b></span>
-      <span class="item-sub"><%= w.home %> partits a casa · <b class="<%= w.free ? 'ok' : 'bad' %>"><%= w.free %> franges lliures</b></span></a>
+      <span class="item-sub"><%= w.home %> partits a casa · <b class="<%= w.free ? 'ok' : 'bad' %>"><%= w.free %> <%= w.free === 1 ? 'franja lliure' : 'franges lliures' %></b></span></a>
   <% }) %>
 </section>
 <section class="card">

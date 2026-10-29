@@ -60,6 +60,9 @@ test('dates i noms', () => {
   assert.equal(E.familyKey('Genís Reventós Plaza'), 'reventos plaza');
   assert.equal(E.teamLabel(T[1], 'BCN PREBENJAMI OR 3'), 'Prebenjamí A');
   assert.equal(E.teamLabel({ name: 'CH RIPOLLET', own: 1 }, 'BCN PB-INICIACIÓ 3'), 'Prebenjamí Iniciació');
+  assert.equal(E.teamLabel({ name: 'CH RIPOLLET', own: 1 }, '3ª CATALANA GRUP A'), '3a Catalana');
+  assert.equal(E.teamLabel({ name: 'CH RIPOLLET', own: 1 }, '1ª CATALANA GRUP A'), '1a Catalana');
+  assert.equal(E.categoryOf('3ª Catalana'), '3a Catalana');
 });
 
 test('jugador que dobla: dos partits fora a la mateixa hora és bloqueig', () => {

@@ -145,7 +145,7 @@ test('importar Excel de persones: previsualitza, aplica i vincula amb les actes'
   assert.equal(db.prepare("SELECT COUNT(*) n FROM people WHERE name = 'Persona Nova'").get().n, 1);
   const exp = await agent.get('/persones/exportar.xlsx').buffer(true).parse((res, cb) => { const d = []; res.on('data', (c) => d.push(c)); res.on('end', () => cb(null, Buffer.concat(d))); });
   const rows = XLSX.utils.sheet_to_json(XLSX.read(exp.body).Sheets.Persones);
-  assert.ok(rows.some((r) => r.Nom === 'Sergio Miras' && /Benjamí B/.test(r.Entrena)));
+  assert.ok(rows.some((r) => r.Nom === 'Sergio Miras Valero' && /Benjamí B/.test(r.Entrena)));
 });
 
 test('partit manual amb una persona convocada', async () => {
@@ -158,4 +158,36 @@ test('partit manual amb una persona convocada', async () => {
   assert.equal(m.home_name, 'Pavelló de Mollet');
   assert.equal(db.prepare('SELECT person_id FROM assignments WHERE match_id = ?').get(m.id).person_id, person);
   assert.equal((await agent.get(`/partits/${m.id}`)).status, 200);
+});
+
+test('fusionar dues fitxes de la mateixa persona', async () => {
+  const { app, db } = await setup();
+  const agent = await login(app, 'coord@club.cat');
+  const keep = db.prepare("SELECT id FROM people WHERE name = 'Sergio Miras Valero'").get().id;
+  const team = db.prepare('SELECT id FROM teams WHERE own = 1').get().id;
+  const drop = db.prepare("INSERT INTO people (name, notes) VALUES ('Miras', 'de l''Excel')").run().lastInsertRowid;
+  db.prepare("INSERT INTO person_teams (person_id, team_id, role) VALUES (?, ?, 'entrena')").run(drop, team);
+  db.prepare("INSERT INTO comments (entity_type, entity_id, body) VALUES ('person', ?, 'nota')").run(drop);
+  const res = await agent.post(`/persones/${keep}/fusionar`).type('form').send({ _csrf: agent.csrf, other_id: drop });
+  assert.equal(res.status, 302);
+  assert.equal(db.prepare('SELECT COUNT(*) n FROM people WHERE id = ?').get(drop).n, 0);
+  assert.equal(db.prepare('SELECT notes FROM people WHERE id = ?').get(keep).notes, "de l'Excel");
+  assert.equal(db.prepare("SELECT entity_id FROM comments WHERE body = 'nota'").get().entity_id, keep);
+  assert.ok(db.prepare('SELECT 1 FROM appearances WHERE person_id = ?').get(keep));
+});
+
+test('importar: àlies de nom de pila es vinculen si comparteixen equip', async () => {
+  const { app, db } = await setup();
+  const agent = await login(app, 'coord@club.cat');
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([
+    ['Nom', 'Juga a', 'Entrena'],
+    ['Sergio', '', 'Benjamí B'],   // Sergio Miras Valero entrena el Benjamí B a les actes
+    ['Sergio Garcia', '', 'Benjamí B'], // un altre cognom: persona nova
+  ]), 'Persones');
+  await agent.post(`/persones/importar?_csrf=${agent.csrf}`).attach('file', XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' }), 'p.xlsx');
+  await agent.post('/persones/importar/aplicar').type('form').send({ _csrf: agent.csrf });
+  assert.equal(db.prepare("SELECT COUNT(*) n FROM people WHERE name LIKE 'Sergio%'").get().n, 2);
+  assert.ok(db.prepare("SELECT 1 FROM people WHERE name = 'Sergio Miras Valero'").get(), 'es queda el nom complet de les actes');
+  assert.ok(db.prepare("SELECT 1 FROM people WHERE name = 'Sergio Garcia'").get());
 });

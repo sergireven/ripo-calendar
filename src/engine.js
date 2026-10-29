@@ -225,8 +225,8 @@ function describeTiming(t, cfg) {
 // ── Etiquetes ─────────────────────────────────────────────────────────
 const CATEGORIES = [
   [/prebenj|pb.?inici|prebe/, 'Prebenjamí'], [/benjam/, 'Benjamí'], [/alev/, 'Aleví'], [/infantil/, 'Infantil'],
-  [/juvenil/, 'Juvenil'], [/junior/, 'Júnior'], [/nacional/, 'Nacional Catalana'], [/primera|1a cat/, '1a Catalana'],
-  [/segona|2a cat/, '2a Catalana'], [/tercera|3a cat/, '3a Catalana'], [/fem/, 'Femení'], [/veteran|lcv/, 'Veterans'],
+  [/juvenil/, 'Juvenil'], [/junior/, 'Júnior'], [/nacional/, 'Nacional Catalana'], [/primera|\b1a? cat/, '1a Catalana'],
+  [/segona|\b2a? cat/, '2a Catalana'], [/tercera|\b3a? cat/, '3a Catalana'], [/fem/, 'Femení'], [/veteran|\blcv\b/, 'Veterans'],
   [/ok liga/, 'OK Liga'],
 ];
 
