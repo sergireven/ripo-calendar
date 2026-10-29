@@ -1,0 +1,33 @@
+<%- include('partials/head') %>
+<div class="head-row">
+  <h1>Persones <span class="muted">(<%= total %>)</span></h1>
+  <div class="row-actions">
+    <% if (isCoord) { %><a class="btn small" href="/persones/exportar.xlsx">📤 Excel</a><a class="btn small" href="/persones/importar">📥 Importar</a><% } %>
+  </div>
+</div>
+<form method="get" action="/persones" class="filters">
+  <input type="search" name="q" value="<%= q %>" placeholder="Cerca per nom o equip…">
+  <input type="hidden" name="filtre" value="<%= filter %>">
+  <button class="btn">Cercar</button>
+</form>
+<div class="tabs">
+  <% [['tots', 'Tots'], ['entrenadors', 'Entrenadors'], ['doblen', 'Doblen equip'], ['altres', 'Altres clubs'], ['bloquejos', 'Amb bloquejos'], ['sense-equip', 'Sense equip']].forEach(([k, l]) => { %>
+    <a href="/persones?filtre=<%= k %>&q=<%= encodeURIComponent(q) %>" class="<%= filter === k ? 'on' : '' %>"><%= l %></a>
+  <% }) %>
+</div>
+<p class="muted small">Els jugadors, entrenadors i delegats surten sols de les actes de la federació. Afegeix aquí qui no hi surt o equips d'altres clubs.</p>
+<section class="card list">
+  <% if (!list.length) { %><p class="muted">Cap persona amb aquest filtre.</p><% } %>
+  <% list.slice(0, 300).forEach((p) => { %>
+    <a class="item" href="/persones/<%= p.id %>">
+      <span class="item-main"><b><%= tc(p.name) %></b><%= p.porter ? ' 🧤' : '' %><%= p.active ? '' : ' · inactiva' %>
+        <% if (blocks.get(p.id)) { %><span class="pill block">⛔ <%= blocks.get(p.id) %></span><% } %></span>
+      <span class="item-sub"><% p.teams.forEach((t, i) => { const tm = teams.get(t.teamId); %><%= i ? ' · ' : '' %><%= { juga: '🏒', entrena: '📋', ajuda: '🤝' }[t.role] %> <%= tm ? tm.label : '?' %><% }) %><%= p.teams.length ? '' : 'Sense equip' %></span>
+    </a>
+  <% }) %>
+  <% if (list.length > 300) { %><p class="muted small">Mostrant 300 de <%= list.length %>. Fes servir el cercador.</p><% } %>
+</section>
+<% if (isCoord) { %><form method="post" action="/persones" class="inline-form card">
+  <input type="hidden" name="_csrf" value="<%= csrf %>"><input name="name" placeholder="Nom i cognoms" required><button class="btn primary">+ Nova persona</button>
+</form><% } %>
+<%- include('partials/foot') %>

@@ -1,0 +1,28 @@
+{
+  "name": "ripo-calendar",
+  "version": "1.0.0",
+  "description": "Calendari, bloquejos i simulador de canvis del Club Hoquei Ripollet",
+  "main": "src/server.js",
+  "private": true,
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "test": "node --test test/*.test.js",
+    "sync": "node scripts/sync-now.js",
+    "create-user": "node scripts/create-user.js"
+  },
+  "engines": { "node": ">=22" },
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "better-sqlite3": "^12.4.1",
+    "dotenv": "^17.2.3",
+    "ejs": "^3.1.10",
+    "express": "^5.1.0",
+    "express-session": "^1.18.2",
+    "multer": "^2.0.2",
+    "xlsx": "0.18.5"
+  },
+  "devDependencies": {
+    "supertest": "^7.1.4"
+  }
+}

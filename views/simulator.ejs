@@ -1,0 +1,67 @@
+<%- include('partials/head') %>
+<h1>Simulador de canvis</h1>
+<p class="muted">Un club truca o escriu per moure un partit: tria'l, posa la nova data i hora i mira què passa abans de dir que sí.</p>
+<section class="card">
+  <form method="get" action="/simulador" class="stack">
+    <label>Partit
+      <select name="partit" data-autosubmit required>
+        <option value="">Tria un partit…</option>
+        <% own.forEach((e) => { %><option value="<%= e.matchId %>" <%= target && target.matchId === e.matchId ? 'selected' : '' %>><%= dayLabel(e.dayKey, true) %> <%= e.time %> · <%= e.label %> <%= e.isHome ? 'vs' : '@' %> <%= tc(e.opponent) %></option><% }) %>
+      </select></label>
+    <% if (target) { %>
+      <p class="small">Ara: <b><%= dayLabel(target.dayKey) %> <%= target.time %></b> · <%= target.isHome ? 'a casa' : 'fora, a ' + tc(target.venue) %><%= target.proposalId ? ' (amb proposta pendent)' : '' %></p>
+      <div class="grid2"><label>Nova data <input type="date" name="data" value="<%= date %>" required></label><label>Nova hora <input type="time" name="hora" value="<%= time %>" step="300" required></label></div>
+      <div class="row-actions"><button class="btn primary">Analitzar</button><button class="btn" name="alternatives" value="1">Buscar alternatives</button></div>
+    <% } %>
+  </form>
+</section>
+
+<% if (sim) { %>
+<section class="card">
+  <h2><%= sim.event.label %> → <%= dayLabel(sim.moved.dayKey, true) %> <%= sim.moved.time %></h2>
+  <% if (!sim.blocks) { %><p class="big ok">✓ Es pot acceptar<%= sim.warns ? ` (amb ${sim.warns} avís${sim.warns > 1 ? 'os' : ''})` : '' %></p>
+  <% } else { %><p class="big bad">⛔ Genera <%= sim.blocks %> bloqueig<%= sim.blocks > 1 ? 's' : '' %></p><% } %>
+  <% if (sim.event.isHome) { %><p>🏟️ <%= sim.inGrid ? 'Franja habitual de la parrilla' : 'Fora de la parrilla habitual (' + (sim.gridTimes.join(' · ') || 'sense franges aquest dia') + ')' %> · <%= sim.pista.free %> franges lliures aquell dia</p><% } %>
+  <% if (sim.affected.length) { %><p>👤 Afecta: <%= sim.affected.map(tc).join(', ') %></p><% } %>
+  <% if (sim.resolved.length) { %><p class="ok">✓ Resol <%= sim.resolved.length %> conflicte<%= sim.resolved.length > 1 ? 's' : '' %> que hi havia</p><% } %>
+  <% sim.after.forEach((c) => { %><%- include('partials/conflict', { c, showDate: true }) %><% }) %>
+  <% if (isCoord) { %>
+  <form method="post" action="/propostes" class="stack save">
+    <input type="hidden" name="_csrf" value="<%= csrf %>"><input type="hidden" name="match_id" value="<%= sim.event.matchId %>">
+    <input type="hidden" name="date" value="<%= sim.moved.dayKey %>"><input type="hidden" name="time" value="<%= sim.moved.time %>">
+    <div class="grid2">
+      <label>Origen <select name="origin"><% Object.entries(ORIGINS).forEach(([k, l]) => { %><option value="<%= k %>"><%= l %></option><% }) %></select></label>
+      <label>Qui ho demana <input name="contact" placeholder="Club, persona, telèfon…"></label>
+    </div>
+    <label>Comentari <textarea name="comment" rows="2"></textarea></label>
+    <button class="btn primary">Desar com a proposta pendent</button>
+  </form>
+  <% } %>
+</section>
+<% } %>
+
+<% if (slots) { %>
+<section class="card">
+  <h2>Alternatives sense bloquejos</h2>
+  <% const group = (list) => { const m = new Map(); list.forEach((s) => { if (!m.has(s.dayKey)) m.set(s.dayKey, []); m.get(s.dayKey).push(s); }); return [...m.entries()]; }; %>
+  <% if (target.isHome) { %><h3>🏟️ Franges lliures de la parrilla</h3>
+    <% if (!slots.grid.length) { %><p class="muted">Cap franja habitual lliure.</p><% } %>
+    <% group(slots.grid).forEach(([d, l]) => { %><p><b><%= dayLabel(d) %>:</b> <% l.sort((a, b) => a.time.localeCompare(b.time)).forEach((s) => { %><a class="chip <%= s.warns ? 'warn' : 'free' %>" href="/simulador?partit=<%= target.matchId %>&data=<%= s.dayKey %>&hora=<%= s.time %>"><%= s.time %><%= s.warns ? ' ⚠️' : '' %></a><% }) %></p><% }) %>
+  <% } %>
+  <% if (slots.other.length) { %><h3><%= target.isHome ? 'Altres hores possibles' : 'Hores possibles (la pista del rival l\'ha de confirmar ell)' %></h3>
+    <% group(slots.other).forEach(([d, l]) => { %><p><b><%= dayLabel(d) %>:</b> <% l.sort((a, b) => a.time.localeCompare(b.time)).forEach((s) => { %><a class="chip <%= s.warns ? 'warn' : 'free' %>" href="/simulador?partit=<%= target.matchId %>&data=<%= s.dayKey %>&hora=<%= s.time %>"><%= s.time %><%= s.warns ? ' ⚠️' : '' %></a><% }) %></p><% }) %><% } %>
+  <% if (!slots.grid.length && !slots.other.length) { %><p class="bad">No hi ha cap hora sense bloquejos aquest cap de setmana.</p><% } %>
+</section>
+<% } %>
+
+<section class="card">
+  <h2>Propostes</h2>
+  <% if (!proposals.length) { %><p class="muted">Encara no n'hi ha.</p><% } %>
+  <% proposals.forEach((p) => { %>
+    <a class="item" href="/propostes/<%= p.id %>">
+      <span class="item-main"><b><%= p.ev ? p.ev.label : 'Partit' %></b> <span class="pill <%= p.status %>"><%= { pendent: 'pendent', acceptada: 'acceptada · falta federació', rebutjada: 'rebutjada', oficial: 'oficial' }[p.status] %></span></span>
+      <span class="item-sub">→ <%= dayLabel(p.new_date, true) %> <%= p.new_time %> · <%= ORIGINS[p.origin] || '' %><%= p.contact ? ' · ' + p.contact : '' %> · <%= when(p.created_at) %></span>
+    </a>
+  <% }) %>
+</section>
+<%- include('partials/foot') %>

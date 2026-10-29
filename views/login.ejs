@@ -1,0 +1,13 @@
+<%- include('partials/head') %>
+<section class="card login">
+  <h1>🏒 Calendari CH Ripollet</h1>
+  <p class="muted">Partits, bloquejos i canvis de tots els equips del club.</p>
+  <% if (error) { %><div class="flash error"><%= error %></div><% } %>
+  <form method="post" action="/entrar" class="stack">
+    <input type="hidden" name="_csrf" value="<%= csrf %>">
+    <label>Correu <input type="email" name="email" value="<%= email %>" required autofocus autocomplete="username"></label>
+    <label>Contrasenya <input type="password" name="password" required autocomplete="current-password"></label>
+    <button class="btn primary">Entrar</button>
+  </form>
+</section>
+<%- include('partials/foot') %>
