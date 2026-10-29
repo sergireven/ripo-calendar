@@ -1,0 +1,7 @@
+ls-get.html: HTTP 200 3538563B idc_master=574 temp_41=58 rows=0 fases= players=0 ripollet=160
+ls-post.html: HTTP 200 3538563B idc_master=574 temp_41=58 rows=0 fases= players=0 ripollet=160
+cal-4810.html: HTTP 200 472099B idc_master=0 temp_41=0 rows=308 fases=4945,4946,4947,4948,4949,4950 players=0 ripollet=28
+cal-4776.html: HTTP 200 820177B idc_master=0 temp_41=0 rows=578 fases=4866,4867 players=0 ripollet=34
+rfep-cal-3575.html: HTTP 200 305672B idc_master=0 temp_41=0 rows=182 fases=3575 players=0 ripollet=0
+rfep-ls.html: HTTP 200 772967B idc_master=400 temp_41=9 rows=0 fases= players=0 ripollet=0
+gr-154502.html: HTTP 200 57131B idc_master=0 temp_41=0 rows=0 fases= players=15 ripollet=6
