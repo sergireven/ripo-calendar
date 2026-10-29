@@ -1,0 +1,252 @@
+{
+ "temp": "41",
+ "temps": [
+  [
+   "41",
+   "2026/27"
+  ],
+  [
+   "39",
+   "2025/26"
+  ],
+  [
+   "37",
+   "2024/25"
+  ]
+ ],
+ "comps": [
+  [
+   "4774",
+   "NACIONAL CATALANA MASCULINA"
+  ],
+  [
+   "4775",
+   "NACIONAL CATALANA FEMENINA"
+  ],
+  [
+   "4776",
+   "PRIMERA CATALANA MASCULINA"
+  ],
+  [
+   "4778",
+   "PRIMERA CATALANA FEMENINA"
+  ],
+  [
+   "4779",
+   "SEGONA CATALANA MASCULINA"
+  ],
+  [
+   "4780",
+   "SEGONA CATALANA FEMENINA"
+  ],
+  [
+   "4781",
+   "TERCERA CATALANA MASCULINA "
+  ],
+  [
+   "4782",
+   "JÚNIOR OR"
+  ],
+  [
+   "4783",
+   "JÚNIOR PLATA"
+  ],
+  [
+   "4784",
+   "JUVENIL OR"
+  ],
+  [
+   "4785",
+   "JUVENIL PLATA"
+  ],
+  [
+   "4786",
+   "INFANTIL OR"
+  ],
+  [
+   "4787",
+   "INFANTIL PLATA"
+  ],
+  [
+   "4788",
+   "INFANTIL BRONZE"
+  ],
+  [
+   "4789",
+   "ALEVÍ OR"
+  ],
+  [
+   "4790",
+   "ALEVÍ PLATA"
+  ],
+  [
+   "4791",
+   "ALEVÍ BRONZE"
+  ],
+  [
+   "4792",
+   "FEM19"
+  ],
+  [
+   "4793",
+   "FEM 17 OR "
+  ],
+  [
+   "4794",
+   "FEM 17 PLATA"
+  ],
+  [
+   "4802",
+   "FEM 15 OR"
+  ],
+  [
+   "4803",
+   "FEM 15 PLATA"
+  ],
+  [
+   "4804",
+   "FEM 13 OR"
+  ],
+  [
+   "4805",
+   "FEM 13 PLATA"
+  ],
+  [
+   "4806",
+   "FEM 11 OR"
+  ],
+  [
+   "4807",
+   "FEM 11 PLATA"
+  ],
+  [
+   "4808",
+   "MINIFEM"
+  ],
+  [
+   "4810",
+   "BENJAMÍ OR BARCELONA"
+  ],
+  [
+   "4811",
+   "BENJAMÍ PLATA BARCELONA"
+  ],
+  [
+   "4812",
+   "BENJAMÍ BRONZE BARCELONA"
+  ],
+  [
+   "4813",
+   "PREBENJAMI OR BARCELONA"
+  ],
+  [
+   "4814",
+   " PREBENJAMI PLATA BARCELONA "
+  ],
+  [
+   "4815",
+   " PREBENJAMI BRONZE BARCELONA "
+  ],
+  [
+   "4818",
+   " BENJAMÍ PLATA TARRAGONA"
+  ],
+  [
+   "4816",
+   "PREBENJAMI INICIACIO BARCELONA"
+  ],
+  [
+   "4817",
+   " BENJAMÍ  OR TARRAGONA"
+  ],
+  [
+   "4819",
+   "PREBENJAMI OR TARRAGONA"
+  ],
+  [
+   "4820",
+   " PREBENJAMI PLATA TARRAGONA"
+  ],
+  [
+   "4821",
+   " PREBENJAMI BRONZE TARRAGONA"
+  ],
+  [
+   "4822",
+   "BENJAMÍ OR GIRONA"
+  ],
+  [
+   "4823",
+   "BENJAMÍ PLATA GIRONA"
+  ],
+  [
+   "4824",
+   "PREBENJAMI OR GIRONA "
+  ],
+  [
+   "4825",
+   "PREBENJAMI PLATA GIRONA"
+  ],
+  [
+   "5027",
+   "BENJAMÍ LLEIDA"
+  ],
+  [
+   "4833",
+   "PREBENJAMI OR LLEIDA"
+  ],
+  [
+   "4834",
+   "PREBENJAMI PLATA- BRONZE LLEIDA"
+  ],
+  [
+   "5045",
+   "LLIGA CATALANA DE VETERANS"
+  ],
+  [
+   "5046",
+   "MÀSTER 50 LLIGA CATALANA DE VETERANS"
+  ],
+  [
+   "5062",
+   "LLIGA VETERANS GIRONA"
+  ],
+  [
+   "5082",
+   "LLIGA VETERANS TARRAGONA"
+  ],
+  [
+   "5014",
+   "SUPERCOPA CATALANA MASCULINA"
+  ],
+  [
+   "5015",
+   "SUPERCOPA CATALANA FEMENINA"
+  ],
+  [
+   "4856",
+   "LLIGA CATALANA PLATA"
+  ],
+  [
+   "5070",
+   "OPEN INTERNACIONAL GOLDENCAT MASCULÍ"
+  ],
+  [
+   "5073",
+   " OPEN INTERNACIONAL GOLDENCAT FEMENÍ"
+  ],
+  [
+   "5076",
+   "YOUTH GOLDEN CAT"
+  ],
+  [
+   "4860",
+   "LLIGA CATALANA FEMENINA"
+  ],
+  [
+   "4858",
+   "FRIT RAVICH LLIGA CATALANA"
+  ]
+ ],
+ "allIdc": 574
+}
