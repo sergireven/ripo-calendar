@@ -12,7 +12,7 @@
     <% person.teams.forEach((t) => { const tm = teams.get(t.teamId); %>
       <div class="team-row">
         <span><%= roleIcon[t.role] %> <a href="/equips/<%= t.teamId %>"><%= tm ? tm.label : '?' %></a>
-          <span class="muted small"><%= t.auto ? `${t.apps} acta${t.apps === 1 ? '' : 'es'}` : 'fitxa' %><%= tm && !tm.own ? ' · altre club' : '' %></span></span>
+          <span class="muted small"><%= t.auto ? `${t.apps} ${t.apps === 1 ? 'acta' : 'actes'}` : 'fitxa' %><%= tm && !tm.own ? ' · altre club' : '' %></span></span>
         <input type="hidden" name="team_id" value="<%= t.teamId %>">
         <select name="role" <%= isCoord ? '' : 'disabled' %>>
           <% [['juga', 'Juga'], ['entrena', 'Entrena'], ['ajuda', 'Ajudant/delegat'], ['treure', 'Treure']].forEach(([v, l]) => { %><option value="<%= v %>" <%= t.role === v ? 'selected' : '' %>><%= l %></option><% }) %>
